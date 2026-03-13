@@ -1,0 +1,253 @@
+# Domain rules for KnowMat 2.0 schema conversion.
+# Materials scientists can edit this file to adjust extraction heuristics
+# without modifying Python code.
+
+valid_elements:
+  # Period 1-2
+  - H
+  - He
+  - Li
+  - Be
+  - B
+  - C
+  - N
+  - O
+  - F
+  - Ne
+  # Period 3
+  - Na
+  - Mg
+  - Al
+  - Si
+  - P
+  - S
+  - Cl
+  - Ar
+  # Period 4
+  - K
+  - Ca
+  - Sc
+  - Ti
+  - V
+  - Cr
+  - Mn
+  - Fe
+  - Co
+  - Ni
+  - Cu
+  - Zn
+  - Ga
+  - Ge
+  - As
+  - Se
+  - Br
+  - Kr
+  # Period 5
+  - Rb
+  - Sr
+  - Y
+  - Zr
+  - Nb
+  - Mo
+  - Tc
+  - Ru
+  - Rh
+  - Pd
+  - Ag
+  - Cd
+  - In
+  - Sn
+  - Sb
+  - Te
+  - I
+  - Xe
+  # Period 6
+  - Cs
+  - Ba
+  - La
+  - Ce
+  - Pr
+  - Nd
+  - Pm
+  - Sm
+  - Eu
+  - Gd
+  - Tb
+  - Dy
+  - Ho
+  - Er
+  - Tm
+  - Yb
+  - Lu
+  - Hf
+  - Ta
+  - W
+  - Re
+  - Os
+  - Ir
+  - Pt
+  - Au
+  - Hg
+  - Tl
+  - Pb
+  - Bi
+  - Po
+  - At
+  - Rn
+  # Period 7
+  - Fr
+  - Ra
+  - Ac
+  - Th
+  - Pa
+  - U
+  - Np
+  - Pu
+  - Am
+  - Cm
+  - Bk
+  - Cf
+
+# Mapping from lowercase text patterns to standardised phase names.
+phase_patterns:
+  bcc: BCC
+  fcc: FCC
+  hcp: HCP
+  amorphous: amorphous
+  glassy: amorphous
+  l12: L12
+  l1_2: L12
+  laves: Laves
+  sigma phase: sigma
+
+# Keywords whose presence in characterisation text implies precipitates.
+precipitate_keywords:
+  - precipitate
+  - precipitates
+  - precipitation
+  - carbide
+  - nitride
+  - oxide
+  - nbc
+  - tic
+  - tac
+  - vc
+  - cr23c6
+  - sigma phase
+  - mu phase
+  - chi phase
+  - l12
+  - l21
+  - laves
+
+# Mapping from free-text property names to standardised column names.
+property_name_mapping:
+  yield strength: Yield_Strength
+  compressive yield strength: Yield_Strength
+  ultimate tensile strength: Ultimate_Tensile_Strength
+  ultimate compressive strength: Ultimate_Compressive_Strength
+  tensile strength: Ultimate_Tensile_Strength
+  uts: Ultimate_Tensile_Strength
+  total elongation: Total_Elongation
+  uniform elongation: Uniform_Elongation
+  elongation: Elongation
+  fracture strain: Fracture_Strain
+  ductility: Elongation
+  "young's modulus": Youngs_Modulus
+  elastic modulus: Youngs_Modulus
+  modulus: Youngs_Modulus
+  grain size: Grain_Size
+  average grain size: Grain_Size
+  grain diameter: Grain_Size
+  relative density: Relative_Density
+  density: Density
+  porosity: Porosity
+  dislocation density: Dislocation_Density
+  lattice parameter: Lattice_Parameter
+  lattice constant: Lattice_Parameter
+  stacking fault energy: Stacking_Fault_Energy
+  sfe: Stacking_Fault_Energy
+
+# Keywords for inferring manufacturing process category.
+process_category_keywords:
+  AM_DED:
+    - lens
+    - ded
+    - directed energy deposition
+    - laser-engineered net shaping
+    - laser cladding
+  AM_LPBF:
+    - lpbf
+    - l-pbf
+    - laser powder bed fusion
+    - powder bed fusion
+  AM_SLM:
+    - slm
+    - selective laser melting
+  WAAM:
+    - waam
+    - wire arc additive
+    - wire + arc
+  EBM:
+    - ebm
+    - electron beam melting
+  SPS:
+    - sps
+    - spark plasma sintering
+  HIP:
+    - hip
+    - hot isostatic pressing
+  Arc_Melting:
+    - arc melting
+    - vacuum arc melting
+    - arc-melting
+  HeatTreat:
+    - heat treat
+    - annealed
+    - annealing
+    - aged
+    - aging
+    - solution treatment
+    - quench
+  Casting:
+    - cast
+    - casting
+    - melt spinning
+    - suction casting
+    - induction melting
+  Forging:
+    - forging
+    - forged
+    - hot forging
+    - cold forging
+  Rolling:
+    - rolling
+    - rolled
+    - hot rolling
+    - cold rolling
+  Mechanical_Alloying:
+    - mechanical alloying
+    - ball milling
+    - high-energy ball milling
+
+# Regex patterns for extracting key process parameters from free text.
+# Each entry maps a parameter name to a list of regex patterns (tried in order).
+# The first capturing group of the first matching pattern is used as the value.
+parameter_patterns:
+  Laser_Power_W:
+    - "(?:laser\\s+power|power)\\s*[=:]\\s*(\\d+(?:\\.\\d+)?)\\s*W"
+    - "P\\s*=\\s*(\\d+(?:\\.\\d+)?)\\s*W"
+  Scan_Speed_mm_s:
+    - "(?:scan(?:ning)?\\s+speed|scanning\\s+velocity)\\s*[=:]\\s*(\\d+(?:\\.\\d+)?)\\s*mm/s"
+    - "v\\s*=\\s*(\\d+(?:\\.\\d+)?)\\s*mm/s"
+  Layer_Thickness_um:
+    - "layer\\s+thickness\\s*[=:]\\s*(\\d+(?:\\.\\d+)?)\\s*(?:μm|um|µm)"
+    - "t\\s*=\\s*(\\d+(?:\\.\\d+)?)\\s*(?:μm|um|µm)"
+  Hatch_Spacing_um:
+    - "hatch(?:ing)?\\s+spac(?:e|ing)\\s*[=:]\\s*(\\d+(?:\\.\\d+)?)\\s*(?:μm|um|µm)"
+    - "line\\s+spacing\\s*[=:]\\s*(\\d+(?:\\.\\d+)?)\\s*(?:μm|um|µm)"
+    - "h\\s*=\\s*(\\d+(?:\\.\\d+)?)\\s*(?:μm|um|µm)"
+  Preheat_Temperature_C:
+    - "(?:preheat|preheating|substrate)\\s+(?:temperature|temp)\\s*[=:]\\s*(\\d+(?:\\.\\d+)?)\\s*°?\\s*C"
+  Oxygen_Content_ppm:
+    - "oxygen\\s+(?:content\\s+)?(?:below|<|under)?\\s*(\\d+)\\s*ppm"

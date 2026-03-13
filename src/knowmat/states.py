@@ -39,6 +39,84 @@ Important fields
 from typing import TypedDict, List, Optional, Dict, Any
 
 
+# ---------------------------------------------------------------------------
+# OCR / document metadata types
+# ---------------------------------------------------------------------------
+
+class OcrPageMeta(TypedDict):
+    """Per-page metadata produced by the OCR stage."""
+
+    page_number: int
+    text_length: int
+    has_tables: bool
+    has_figures: bool
+
+
+class DocumentMetadata(TypedDict, total=False):
+    """Structured metadata extracted from a parsed PDF/TXT document."""
+
+    doi: Optional[str]
+    title: Optional[str]
+    total_pages: int
+    page_meta: List[OcrPageMeta]
+    ocr_engine: str
+    ocr_items: List[Dict[str, Any]]
+
+
+# ---------------------------------------------------------------------------
+# Target-schema types (output of SchemaConverter)
+# ---------------------------------------------------------------------------
+
+class PerformanceTest(TypedDict, total=False):
+    """A single mechanical / physical test result."""
+
+    Test_ID: str
+    Test_Temperature_K: Optional[int]
+    Property_Type: Optional[str]
+    Property_Value: float
+    Property_Unit: Optional[str]
+
+
+class ProcessedSample(TypedDict, total=False):
+    """One processing condition / sample within a material."""
+
+    Sample_ID: str
+    Process_Category: str
+    Process_Text_For_AI: str
+    Key_Params_JSON: Dict[str, Any]
+    Main_Phase: str
+    Microstructure_Text_For_AI: str
+    Has_Precipitates: bool
+    Grain_Size_avg_um: Optional[float]
+    Performance_Tests: List[PerformanceTest]
+
+
+class TargetMaterial(TypedDict, total=False):
+    """One material entry in the target HEA schema."""
+
+    description: str
+    Mat_ID: str
+    Alloy_Name_Raw: str
+    Formula_Normalized: str
+    Composition_JSON: Dict[str, float]
+    Source_DOI: str
+    Source_File: str
+    Processed_Samples: List[ProcessedSample]
+
+
+class TargetSchema(TypedDict, total=False):
+    """Top-level target schema produced by SchemaConverter."""
+
+    Dataset_Description: str
+    schema_version: str
+    pipeline_version: str
+    Materials: List[TargetMaterial]
+
+
+# ---------------------------------------------------------------------------
+# Pipeline state types
+# ---------------------------------------------------------------------------
+
 class EvaluationRun(TypedDict, total=False):
     """Structure used to record the outcome of an individual evaluation run."""
 
@@ -60,7 +138,7 @@ class KnowMatState(TypedDict, total=False):
     
     # PDF parsing results
     paper_text: str
-    document_metadata: Optional[Dict[str, Any]]
+    document_metadata: Optional[DocumentMetadata]
     
     # Sub-field detection results
     sub_field: Optional[str]

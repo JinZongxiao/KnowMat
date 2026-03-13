@@ -19,6 +19,7 @@ __pycache__/*
 
 # Cursor IDE (optional: remove this line if you need to share .cursor via git)
 .cursor/
+.trae/
 
 # Project files
 .ropeproject
