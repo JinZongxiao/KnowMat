@@ -14,6 +14,7 @@ Environment variables are prefixed with ``KNOWMAT2_``.  For example,
 import os
 from dotenv import load_dotenv, find_dotenv
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 
 # Load .env early so model defaults can read LLM_MODEL before settings instantiation.
 _env_path = find_dotenv(usecwd=True)
@@ -77,8 +78,7 @@ class Settings(BaseSettings):
     manager_model: str = DEFAULT_LLM_MODEL
     flagging_model: str = DEFAULT_LLM_MODEL
 
-    class Config:
-        env_prefix = "KNOWMAT2_"
+    model_config = ConfigDict(env_prefix="KNOWMAT2_")
 
 
 # Singleton instance to be imported throughout the package

@@ -1,0 +1,22 @@
+prompt_template: |
+  You are a materials science domain expert. Given the following paper text,
+  determine which niche sub-field the work belongs to.
+
+  Valid choices:
+  - experimental
+  - computational
+  - simulation
+  - machine learning
+  - hybrid
+
+  Return your answer using the tool with two fields:
+  1) sub_field
+  2) updated_prompt
+
+  The updated_prompt should start with a short instruction that emphasizes
+  the selected sub_field and explains how it influences extraction focus.
+  Do not include extraneous information.
+
+  Paper text:
+  {paper_text}
+

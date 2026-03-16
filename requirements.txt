@@ -35,7 +35,4 @@ python-dotenv==1.1.1
 colorlog==6.9.0
 PyYAML>=6.0
 
-# 向量与嵌入
-sentence-transformers==5.0.0
-torch==2.8.0
-torchvision==0.23.0
+# 向量与嵌入（可选：如需属性标准化，请参见 setup.cfg extra 'standardization'）

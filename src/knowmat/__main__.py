@@ -27,7 +27,7 @@ from knowmat.nodes.paddleocrvl_parse_pdf import parse_pdf_with_paddleocrvl
 from knowmat.orchestrator import run
 from knowmat.app_config import settings
 
-# 杩涘害鎵撳嵃闂撮殧锛堢锛?
+# 进度打印间隔（秒）
 _PROGRESS_INTERVAL_SEC = 60
 
 def _ensure_utf8_output() -> None:
@@ -110,11 +110,11 @@ def main(argv: list[str] | None = None) -> None:
         os.environ["PADDLE_PDX_LOG_LEVEL"] = args.ocr_log_level
     _ensure_utf8_output()
     
-    # 浼樺厛绾э細CLI (--input-folder / --pdf-folder) > 鐜鍙橀噺 KNOWMAT2_INPUT_DIR > 榛樿 "data/raw"
+    # 优先级：CLI (--input-folder / --pdf-folder) > 环境变量 KNOWMAT2_INPUT_DIR > 默认 "data/raw"
     input_folder_arg = args.input_folder or args.pdf_folder or settings.input_dir
     input_folder = Path(input_folder_arg)
     if not input_folder.exists():
-        # 鑻ョ洰褰曚笉瀛樺湪锛屽垯鍒涘缓绌虹洰褰曞苟鎻愮ず鐢ㄦ埛
+        # 若目录不存在，则创建空目录并提示用户
         print(f"Input folder not found, creating: {input_folder}")
         input_folder.mkdir(parents=True, exist_ok=True)
     
@@ -194,7 +194,7 @@ def main(argv: list[str] | None = None) -> None:
         if pdfs_missing_txt:
             print(f"Queued {len(pdfs_missing_txt)} PDFs for OCR")
 
-    # 璁＄畻褰撳墠杩愯瀹為檯浣跨敤鐨勮緭鍑烘牴鐩綍锛圕LI > 閰嶇疆榛樿鍊硷級
+    # 计算当前运行实际使用的输出根目录（CLI 参数优先于配置默认值）
 
     def _ocr_pdf_to_md(pdf: Path) -> Path | None:
         stem = pdf.stem
@@ -423,26 +423,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":  # pragma: no cover
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

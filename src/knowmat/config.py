@@ -11,6 +11,7 @@ In addition, this module can configure LangSmith tracing when a
 """
 
 import os
+import sys
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -31,7 +32,7 @@ if _env_path:
 
 
 def _set_env(var: str, required: bool = True) -> None:
-    """Prompt for an environment variable when required and missing.
+    """Ensure an environment variable is set without blocking in non-interactive environments.
 
     Parameters
     ----------
@@ -40,9 +41,21 @@ def _set_env(var: str, required: bool = True) -> None:
     required: bool
         Whether this variable is required for runtime execution.
     """
-    if required and var not in os.environ:
-        import getpass
-        os.environ[var] = getpass.getpass(f"{var}: ")
+    if var in os.environ:
+        return
+    if not required:
+        return
+
+    # In non-interactive environments (no TTY), fail fast with a clear error
+    if not sys.stdin or not sys.stdin.isatty():
+        raise RuntimeError(
+            f"Required environment variable {var!r} is not set and interactive prompts "
+            "are not available. Please set it in your environment or .env file."
+        )
+
+    import getpass
+
+    os.environ[var] = getpass.getpass(f"{var}: ")
 
 
 # Ensure that the primary LLM key exists.

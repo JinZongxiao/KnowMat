@@ -127,13 +127,13 @@ class SchemaConverter:
         if m_at:
             return round(float(m_at.group(1)))
 
-        m = re.search(r"(-?\d+(?:\.\d+)?)\s*(k|°c|c)\b", txt)
+        m = re.search(r"(-?\d+(?:\.\d+)?)\s*(k|°c|\bc\b)\b", txt)
         if not m:
             return None
         value = float(m.group(1))
         unit = m.group(2)
         if unit in {"°c", "c"}:
-            return round(value + 273)
+            return round(value + 273.15)
         return round(value)
 
     @staticmethod

@@ -1,0 +1,5 @@
+Here is some information from a materials science literature:
+{paper_text}
+
+Extract data from it following the instructions.
+

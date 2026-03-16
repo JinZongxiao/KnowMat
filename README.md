@@ -112,40 +112,7 @@ data/output/
 3. **OpenAI 兼容 LLM API Key**（例如 ERNIE/Qianfan）
 4. **LangChain API Key**（可选，用于 LangSmith tracing）
 
-### 一键部署（推荐）
-
-在克隆并进入项目目录后，可直接运行脚本完成 Conda 环境创建、PaddlePaddle GPU (cu129) + PaddleOCR、cuDNN 9 与 OCR 模型下载：
-
-**Windows (PowerShell)：**
-
-```powershell
-cd KnowMat
-.\scripts\setup_env.ps1
-```
-
-仅使用 CPU 时（不装 GPU 版 Paddle / cuDNN）：
-
-```powershell
-.\scripts\setup_env.ps1 -CPU
-```
-
-**Linux / macOS：**
-
-```bash
-cd KnowMat
-chmod +x scripts/setup_env.sh
-./scripts/setup_env.sh
-```
-
-仅使用 CPU 时：
-
-```bash
-./scripts/setup_env.sh --cpu
-```
-
-脚本会：创建或更新 `KnowMat` 环境、从国内源安装 `paddlepaddle-gpu==3.3.0` 与 `paddleocr[all]`、尝试用 conda 安装 cuDNN 9（`conda install nvidia::cudnn cuda-version=12`）、下载 PaddleOCR-VL 模型到 `models/paddleocrvl1_5`。完成后执行 `conda activate KnowMat` 并配置 `.env` 即可使用。**Windows 下 cu129 兼容 CUDA 12.7**（如 RTX 4060）；Mac/Linux 及多平台说明见 [docs/platforms.md](docs/platforms.md)。若 OCR 报 `cudnn64_9.dll` 错误，见 [docs/ocr-cudnn64_9-fix.md](docs/ocr-cudnn64_9-fix.md)。
-
-### 手动安装步骤
+### 快速开始（推荐）
 
 1. **克隆仓库**
 
@@ -154,30 +121,42 @@ git clone https://github.com/shiyuasuka/KnowMat.git
 cd KnowMat
 ```
 
-2. **创建 Conda 虚拟环境**
+2. **运行一键环境脚本**
 
-```bash
-conda env create -f environment.yml
-conda activate KnowMat
+Windows（PowerShell）：
+
+```powershell
+.\scripts\setup_env.ps1
 ```
 
-**基础环境**（`environment.yml` / `requirements.txt`）仅含 **CPU 版** Paddle，Mac/Linux/Windows 均可直接安装。**需要 GPU** 时二选一：
+仅 CPU：
 
-- **一键脚本**（推荐）：Windows 运行 `.\scripts\setup_env.ps1`，Linux/Mac 运行 `./scripts/setup_env.sh`（会按平台自动装 GPU 或保持 CPU）。
-- **手动**：`pip install -r requirements-gpu.txt -i https://www.paddlepaddle.org.cn/packages/stable/cu129/`，再 `conda install nvidia::cudnn cuda-version=12`。详见 [docs/platforms.md](docs/platforms.md)。
-
-GPU 下若报 `cudnn64_9.dll`，见 [docs/ocr-cudnn64_9-fix.md](docs/ocr-cudnn64_9-fix.md)。  
-若要处理 PDF，建议预下载 PaddleOCR-VL 模型到项目目录：
-
-```bash
-python scripts/download_paddleocrvl_models.py --model-dir models/paddleocrvl1_5
+```powershell
+.\scripts\setup_env.ps1 -CPU
 ```
 
-Windows GPU 或 macOS（含 Apple Silicon）的详细设备配置见文末 **[PaddleOCR-VL GPU / Apple Silicon](#paddleocr-vl-gpu-apple-silicon)**。
+Linux / macOS：
 
-3. **配置 API Key**
+```bash
+chmod +x scripts/setup_env.sh
+./scripts/setup_env.sh
+```
 
-将 `.env_example` 重命名为 `.env` 并填写：
+仅 CPU（Linux）：
+
+```bash
+./scripts/setup_env.sh --cpu
+```
+
+说明：脚本会创建/更新 `KnowMat` conda 环境、按平台安装 Paddle 与 OCR 依赖、下载 OCR 模型到 `models/paddleocrvl1_5`。多平台差异详见 [docs/platforms.md](docs/platforms.md)；若 OCR 报 `cudnn64_9.dll`，见 [docs/ocr-cudnn64_9-fix.md](docs/ocr-cudnn64_9-fix.md)。
+
+3. **配置 `.env`**
+
+```bash
+cp .env.example .env
+```
+
+填写：
 
 ```bash
 LLM_API_KEY=<你的_llm_api_key>
@@ -196,7 +175,7 @@ LLM_BASE_URL="https://qianfan.bj.baidubce.com/v2"
 LLM_MODEL="ep_xxxxx"
 ```
 
-也可以直接设置环境变量：
+也可直接设置环境变量：
 
 ```bash
 # Windows PowerShell
@@ -214,6 +193,65 @@ export LLM_MODEL="ep_xxxxx"
 
 ```bash
 python -m knowmat --help
+```
+
+### 手动安装（可选）
+
+当你不使用一键脚本时，可按下面步骤手动安装：
+
+1. 创建并激活 conda 环境
+
+```bash
+conda env create -f environment.yml
+conda activate KnowMat
+```
+
+2. 按需安装 GPU 依赖（Windows/Linux + NVIDIA）
+
+```bash
+pip install -r requirements-gpu.txt -i https://www.paddlepaddle.org.cn/packages/stable/cu129/
+conda install nvidia::cudnn cuda-version=12
+```
+
+3. 下载 OCR 模型
+
+```bash
+python scripts/download_paddleocrvl_models.py --model-dir models/paddleocrvl1_5
+```
+
+### 开发者工作流
+
+#### 本地开发与测试
+
+```bash
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+pytest
+```
+
+#### CI
+
+仓库内包含 GitHub Actions 工作流（`.github/workflows/ci.yml`），在推送到 `main`/`master` 或 PR 时自动执行：
+
+- 依赖安装（含 `.[dev]`）
+- 代码风格检查：`ruff`、`black --check`
+- 类型检查：`mypy`
+- 单元测试：`pytest`
+
+#### Prompt 模板维护
+
+当前核心提示词集中在 `prompts/`，代码通过 `src/knowmat/prompt_loader.py` 统一加载。
+
+维护建议：
+
+1. 优先修改模板文件，不在节点 Python 中硬编码长提示词。
+2. 新增 YAML 模板时，在对应节点声明 required keys 校验。
+3. 修改后至少运行一次 lint/语法检查和一条小样本流程验证。
+
+轻量校验命令（本地与 CI 同步）：
+
+```bash
+python scripts/validate_prompts.py
 ```
 
 ---
@@ -413,20 +451,30 @@ print(f"Flagged: {result['flag']}")
 ├── CONTRIBUTING.md         <- 项目贡献指南
 ├── LICENSE.txt             <- MIT 许可证
 ├── README.md               <- 项目说明文档（当前文件）
+├── .env.example            <- 环境变量模板（仅占位符，不含真实密钥）
 ├── Dockerfile              <- 容器构建定义
 ├── environment.yml         <- Conda 环境依赖定义
 ├── pyproject.toml          <- 构建系统配置
-├── requirements.txt       <- pip 依赖列表
+├── requirements.txt        <- pip 依赖列表（补充安装场景）
 ├── setup.cfg               <- 包元数据与依赖配置
 ├── setup.py                <- 安装脚本（已弱化，建议使用 pip install -e .）
 ├── tox.ini                 <- 多环境测试配置
 ├── .coveragerc             <- 覆盖率配置
 ├── .gitignore
+├── .github/
+│   └── workflows/
+│       └── ci.yml          <- CI：lint/type-check/test
 ├── .isort.cfg              <- isort 排序配置
 ├── .pre-commit-config.yaml <- 预提交钩子配置
 ├── .readthedocs.yml        <- Read the Docs 构建配置
 │
-├── configs/                <- 配置文件目录（可选，词库可放在 src/knowmat/）
+├── prompts/                <- 提示词模板（YAML/TXT）
+│   ├── README.md                       <- 说明 prompts 文件夹用途及各模板用法
+│   ├── evaluation.yaml                 <- 评估抽取质量相关的提示词模板
+│   ├── flagging.yaml                   <- 质量标记/错误标记等相关提示词
+│   ├── subfield_detection.yaml         <- 领域或子类领域自动识别用的提示词
+│   ├── extraction_system_template.txt  <- 系统角色（System）的大模型提示模板
+│   └── extraction_user_template.txt    <- 用户输入（User）的大模型提示模板
 │
 ├── data/                   <- 数据目录
 │   ├── raw/                <- 原始输入与 OCR 中间产物（.pdf/.txt + <PaperName>/*.md, *.json）
@@ -445,13 +493,22 @@ print(f"Flagged: {result['flag']}")
 │       ├── states.py       <- LangGraph 状态定义
 │       ├── extractors.py   <- TrustCall/Pydantic 抽取结构定义
 │       ├── prompt_generator.py <- 动态提示词生成
+│       ├── prompt_loader.py <- 外部模板加载器（prompts/*）
 │       ├── post_processing.py  <- 属性标准化后处理
 │       ├── schema_converter.py <- 内部格式到目标 HEA  schema 转换（domain_rules 驱动）
 │       ├── report_writer.py    <- 抽取分析报告生成
 │       ├── domain_rules.py     <- 领域规则加载器（读 domain_rules.yaml）
 │       ├── domain_rules.yaml   <- 领域规则配置（相推断、沉淀检测、工艺分类等）
 │       ├── properties.json     <- 属性标准化词库
+│       ├── pdf/            <- PDF 解析子包（拆分模块）
+│       │   ├── __init__.py            <- 子包初始化
+│       │   ├── blocks.py              <- PDF 文档块（段落、表格、图片等）解析
+│       │   ├── doi_extractor.py       <- 从 PDF 中自动识别并提取 DOI
+│       │   ├── html_cleaner.py        <- PDF 转 HTML 后内容结构清洗与规范化
+│       │   ├── ocr_engine.py          <- OCR 引擎接口（如 PaddleOCR），实现图片转文本
+│       │   └── section_normalizer.py  <- 章节与分段结构标准化（规范章节标题等）
 │       └── nodes/          <- 各代理节点实现
+│           ├── __init__.py
 │           ├── paddleocrvl_parse_pdf.py  <- PDF/TXT 解析节点（含 OCR 逻辑）
 │           ├── docling_parse_pdf.py      <- 兼容层：原 docling 接口 → PaddleOCR-VL
 │           ├── subfield_detection.py     <- 子领域识别节点
@@ -470,16 +527,19 @@ print(f"Flagged: {result['flag']}")
 ├── scripts/                <- 脚本与环境准备
 │   ├── compare_to_manual.py       <- 与人工标注对比
 │   ├── download_paddleocrvl_models.py <- PaddleOCR-VL 模型下载
-│   ├── train_model.py             <- 模型训练脚本
-│   ├── setup_paddleocrvl_gpu.ps1  <- Windows GPU 环境配置
-│   └── setup_paddleocrvl_macos.sh <- macOS 环境配置
+│   ├── setup_env.ps1              <- Windows 一键环境部署（Conda + Paddle + OCR）
+│   ├── setup_env.sh               <- Linux/macOS 一键环境部署
+│   ├── validate_prompts.py        <- 模板完整性校验脚本
+│   └── train_model.py             <- 模型训练脚本
 │
 ├── reports/                <- 回归与 QA 报告输出目录
 │   ├── regression_*.md    <- Markdown 格式报告
 │   └── regression_*.json  <- JSON 格式报告
 │
 ├── tests/                  <- 单元测试（pytest）
-│   └── conftest.py         <- pytest  fixtures
+│   ├── conftest.py         <- pytest fixtures
+│   ├── test_domain_rules.py
+│   └── test_schema_converter.py
 │
 ├── notebooks/              <- 数据分析与实验笔记
 │   ├── create_annotation.ipynb <- 标注创建
@@ -727,7 +787,7 @@ A dependency error occurred during pipeline creation.
 
 解决：
 - 检查 PDF 是否损坏或加密，必要时重新下载。
-- **依赖错误 / “Could not find files for the given pattern(s)”**：若 PaddleOCR-VL 初始化失败（依赖或 pipeline 创建报错），程序会**自动回退到经典 PaddleOCR** 继续执行；若仍失败，多为 PaddlePaddle 运行环境问题。Windows 请安装 [Visual C++ Redistributable](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist)；使用 GPU 时确认 CUDA/cuDNN 与 Paddle 版本匹配；可参考文末 **PaddleOCR-VL GPU / Apple Silicon** 按平台安装。
+- **依赖错误 / “Could not find files for the given pattern(s)”**：若 PaddleOCR-VL 初始化失败（依赖或 pipeline 创建报错），程序会**自动回退到经典 PaddleOCR** 继续执行；若仍失败，多为 PaddlePaddle 运行环境问题。Windows 请安装 [Visual C++ Redistributable](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist)；使用 GPU 时确认 CUDA/cuDNN 与 Paddle 版本匹配，按 [docs/platforms.md](docs/platforms.md) 进行平台化安装。
 - **“用提供的模式无法找到文件”**：若 PDF 路径或文件名含非 ASCII 字符（如下标 ₄₂、中文等），程序会自动复制到临时 ASCII 路径再解析；若仍报错，可先重命名为纯英文路径再试。
 - 需跳过“Checking connectivity to the model hosters”时，可设置环境变量 `PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True`（离线或内网时常用）；程序在创建引擎时也会自动尝试设置。
 
@@ -748,28 +808,6 @@ Unrecognized function call PatchFunction
 说明：该提示来自 **LLM 客户端**（TrustCall/LangChain）在解析 ERNIE/千帆 API 的**返回结果**时发现工具调用名不是我们请求的 `CompositionList`，而是 `PatchFunction`。**ERNIE 官方文档中未公开该接口**，很可能是其 OpenAI 兼容层或内部实现返回的非标准工具名。
 
 影响：客户端无法按预期解析工具调用，可能伴随 `CompositionList` 的校验错误；我们已在 schema 中为必填字段增加默认值，部分返回仍可通过校验并写入结果（QA 会标记需复核）。
-
----
-
-## 规划路线
-
-### 已完成 ✅
-
-- [x] **回归测试工具**：自动化 AI 抽取结果与 Ground Truth 对比
-- [x] **Role 分类**：区分 Target（本文主材料）与 Reference（引用材料）
-- [x] **Material-Sample-Property 三层架构**：精确区分成分/状态/测试
-- [x] **成分质量校验**：非法元素检测、原子百分比和校验
-- [x] **QA 报告生成**：红线告警、自动标记需人工复核的论文
-- [x] **温度标准化增强**：防止重复转换、统一输出格式
-- [x] **Process_Category 扩展**：支持 14 种工艺分类（WAAM/EBM/HIP 等）
-
-### 规划中 🔮
-
-- [ ] Web 界面（面向非技术用户）
-- [ ] 数据库集成（PostgreSQL/MongoDB）
-- [ ] 科研图表数据抽取（表格、曲线识别）
-- [ ] 多领域扩展（化学、生物、物理）
-- [ ] 增量学习（基于用户反馈优化提示词）
 
 ---
 
@@ -820,62 +858,3 @@ Unrecognized function call PatchFunction
 
 - GitHub Issues：<https://github.com/hasan-sayeed/KnowMat2/issues>
 - Email：hasan.sayeed@utah.edu
-
-## PaddleOCR-VL GPU / Apple Silicon
-
-根据不同环境选择对应方案：
-
-### Windows + RTX 50 系列显卡（Blackwell）
-
-在 Windows + RTX 50 系列 GPU 环境下，推荐使用提供的 GPU 一键脚本完成 PaddleOCR‑VL 安装与配置：
-
-```powershell
-.\scripts\setup_paddleocrvl_gpu.ps1
-```
-
-该脚本会自动：
-
-- 安装 GPU 版 `paddlepaddle` 以及 PaddleOCR‑VL 相关依赖；
-- 设置默认运行设备为 GPU；
-- 将模型下载到本项目缓存目录 `models/paddleocrvl1_5`。
-
-说明：
-
-- 脚本会设置环境变量 `KNOWMAT_OCR_DEVICE=gpu:0` 与 `PADDLE_PDX_CACHE_HOME=models/paddleocrvl1_5`；
-- vLLM/sglang 等推理后端更适合独立服务部署，在 Windows 本地推荐直接使用 Paddle 的原生 GPU 推理。
-
-### macOS + Apple Silicon（CPU）
-
-在 Apple Silicon 上，如无需额外加速，可直接使用 CPU 一键脚本（安装到主环境 `.venv`）：
-
-```bash
-./scripts/setup_paddleocrvl_macos.sh
-```
-
-该脚本会使用主环境 `.venv`，安装 `paddlepaddle==3.2.1` 与 `paddleocr[doc-parser]`，并下载模型到 `models/paddleocrvl1_5`。
-
-如需显式指定运行设备与缓存目录，可在 `.env` 或终端设置：
-
-```bash
-export KNOWMAT_OCR_DEVICE=cpu
-export PADDLE_PDX_CACHE_HOME=models/paddleocrvl1_5
-```
-
-### macOS + Apple Silicon（MLX‑VLM 加速）
-
-若希望在 Mac M 系列上利用 MLX‑VLM 进行本地加速，可参考官方建议：安装 `mlx-vlm>=0.3.11`，启动本地推理服务，并将 PaddleOCR‑VL 的后端指向该服务：
-
-```bash
-INSTALL_MLX=1 ./scripts/setup_paddleocrvl_macos.sh
-mlx_vlm.server --port 8111
-```
-
-命令行示例：
-
-```bash
-paddleocr doc_parser \
-  --input paddleocr_vl_demo.png \
-  --vl_rec_backend mlx-vlm-server \
-  --vl_rec_server_url http://localhost:8111/ \
-  --vl_rec_api_model_name PaddlePaddle/PaddleOCR-VL-1.5
-```

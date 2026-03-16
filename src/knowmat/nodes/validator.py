@@ -23,7 +23,19 @@ import json
 from typing import Dict, Any
 
 from knowmat.extractors import manager_extractor, ManagerFeedback, CompositionList
+from knowmat.prompt_loader import load_yaml_templates_required
 from knowmat.states import KnowMatState, load_run_extraction
+
+_VALIDATOR_TEMPLATES = load_yaml_templates_required(
+    "validator.yaml",
+    (
+        "system",
+        "stage1_notes_prefix",
+        "aggregated_data_prefix",
+        "evaluation_feedback_header",
+        "validation_tail",
+    ),
+)
 
 
 def validate_and_correct(state: KnowMatState) -> Dict[str, Any]:
@@ -180,288 +192,62 @@ def validate_and_correct(state: KnowMatState) -> Dict[str, Any]:
     }
 
 
-def _build_validation_prompt(aggregated_data, aggregation_notes, run_results, paper_text):
+def _build_validation_prompt(aggregated_data, aggregation_notes, run_results, paper_text) -> str:
     """Build the complete validation prompt with ALL hallucination correction logic.
     
     This contains the ENTIRE prompt from the original manager, focused on
     validation and correction rather than aggregation.
     """
-    prompt = (
-        "You are a materials science data validation specialist.\n\n"
-        
-        "YOUR ROLE:\n"
-        "You receive merged extraction data that has already been aggregated from multiple runs.\n"
-        "Your job is to VALIDATE this data and CORRECT any errors based on evaluation feedback.\n\n"
-        
-        "YOUR RESPONSIBILITIES:\n"
-        "1) Review the aggregated data for hallucinations (using evaluation feedback)\n"
-        "2) CORRECT hallucinations when the feedback tells you how to fix them\n"
-        "3) Ensure all properties follow ML-ready format (value/value_numeric/value_type)\n"
-        "4) Generate specific human review guidance for remaining uncertainties\n\n"
-        
-        "═══════════════════════════════════════════════════════════════════════════\n"
-        "HALLUCINATION CORRECTION & TRACKING LOGIC (FOLLOW EXACTLY):\n"
-        "═══════════════════════════════════════════════════════════════════════════\n\n"
-        
-        "For EACH field/value in the aggregated data, follow this decision tree:\n\n"
-        
-        "STEP 1: Check hallucination status across runs\n"
-        "   - If NO run marks it as hallucinated → KEEP IT\n"
-        "   - If ANY run marks it as hallucinated → Go to STEP 2\n\n"
-        
-        "STEP 2: Read the hallucination description for correction clues\n"
-        "   The evaluation rationale explains WHY and often suggests the fix:\n"
-        "   - 'Converted >50 mm to 50.0 mm' → Correct value is '>50 mm' (string)\n"
-        "   - 'Converted <2000 MPa to 2000.0 MPa' → Correct value is '<2000 MPa' (string)\n"
-        "   - 'Used placeholder 0.0 for missing value' → No correct value available\n"
-        "   - 'Invented numeric for boolean XRD confirmation' → Should be boolean/text, not numeric\n\n"
-        
-        "STEP 3: Determine if you can CORRECT the hallucination\n"
-        "   A) Hallucination description tells you the correct value:\n"
-        "      → CORRECT IT in final output\n"
-        "      → Document correction in aggregation_rationale\n"
-        "      → Add verification note in human_review_guide\n\n"
-        
-        "   B) Hallucination was corrected in a later run:\n"
-        "      → Use the CORRECTED value from that run\n"
-        "      → Example: Run 1 has '50.0 mm' (hallucinated), Run 2 has '>50 mm' (not hallucinated) → Use Run 2\n\n"
-        
-        "   C) Cannot determine the correct value:\n"
-        "      → Follow standard hallucination tracking (STEP 4)\n\n"
-        
-        "STEP 4: Standard hallucination tracking\n"
-        "   - Hallucinated in some runs but NOT others → KEEP from non-hallucinated runs\n"
-        "   - Hallucinated in ALL runs → EXCLUDE (truly unreliable)\n\n"
-        
-        "STEP 5: Missing fields\n"
-        "   - If missing in one run but present in another:\n"
-        "     * Check if the present version is hallucinated\n"
-        "     * If NOT hallucinated → KEEP it (fills a gap)\n"
-        "     * If hallucinated → Try to CORRECT it (go to STEP 3)\n\n"
-        
-        "═══════════════════════════════════════════════════════════════════════════\n"
-        "CORRECTION EXAMPLES (from diverse materials science domains):\n"
-        "═══════════════════════════════════════════════════════════════════════════\n\n"
-        
-        "Example 1: Inequality correction - Ceramics (CAN CORRECT)\n"
-        "  Aggregated data: grain_size = 200.0 nm\n"
-        "  Hallucination note: 'Converted >200 nm to exact value 200.0'\n"
-        "  → CORRECT to '>200 nm' (string with inequality preserved)\n\n"
-        
-        "Example 2: Inequality correction - Metals (CAN CORRECT)\n"
-        "  Aggregated data: yield_strength = 500.0 MPa\n"
-        "  Hallucination note: 'Converted <500 MPa to exact value 500.0'\n"
-        "  → CORRECT to '<500 MPa' (string with inequality preserved)\n\n"
-        
-        "Example 3: Placeholder for missing value - Polymers (CANNOT CORRECT)\n"
-        "  Aggregated data: glass_transition_temperature = 0.0 K\n"
-        "  Hallucination note: 'Placeholder 0.0 used for missing Tg'\n"
-        "  → Check other runs; if all have placeholders, CORRECT to null (value_type='missing')\n\n"
-        
-        "Example 4: Qualitative misencoding - Semiconductors (CAN CORRECT)\n"
-        "  Aggregated data: band_gap_type = 1.0 eV\n"
-        "  Hallucination note: 'Invented numeric 1.0 for direct/indirect band gap type'\n"
-        "  → CORRECT: Remove numeric property, keep textual value 'direct' or 'indirect'\n\n"
-        
-        "Example 5: Range correction - Biomaterials (CAN CORRECT)\n"
-        "  Aggregated data: pore_size = 150.0 μm\n"
-        "  Hallucination note: 'Converted range 100-200 μm to midpoint 150.0'\n"
-        "  → CORRECT: value='100-200', value_numeric=150.0, value_type='range'\n\n"
-        
-        "Example 6: Corrected in later run - Composites (USE CORRECTED VERSION)\n"
-        "  Run 1: fiber_diameter = 7.0 μm (hallucinated: 'Converted 5-9 μm to 7.0')\n"
-        "  Run 2: fiber_diameter = '5-9 μm' (not hallucinated)\n"
-        "  → Use Run 2's version: value='5-9', value_numeric=7.0, value_type='range'\n\n"
-        
-        "═══════════════════════════════════════════════════════════════════════════\n"
-        "ML-READY PROPERTY FIELD REQUIREMENTS (CRITICAL FOR DATABASE):\n"
-        "═══════════════════════════════════════════════════════════════════════════\n\n"
-        
-        "Each property requires THREE fields for human review AND ML training:\n\n"
-        
-        "1. 'value' (string or null) - HIGH-FIDELITY original value from paper:\n"
-        "   - Exact measurements: '683.0'\n"
-        "   - Inequalities: '>50' or '<2000' (preserve symbols!)\n"
-        "   - Ranges: '12-30'\n"
-        "   - Qualitative: 'no plasticity', 'brittle', 'amorphous'\n"
-        "   - Missing: null (when table shows '-' or not reported)\n\n"
-        
-        "2. 'value_numeric' (float or null) - ML-ready numeric:\n"
-        "   Exact: 683.0 | Inequalities: 50.0, 2000.0 (boundary) | Ranges: 21.0 (midpoint)\n"
-        "   Qualitative: 0.0 | Missing: null\n\n"
-        
-        "3. 'value_type' (string) - CLASSIFICATION for downstream processing:\n"
-        "   - 'exact' : precise measurement (e.g., Tg = 683.0 K)\n"
-        "   - 'lower_bound' : inequality with '>' (e.g., Dc > 50 mm)\n"
-        "   - 'upper_bound' : inequality with '<' (e.g., σ_max < 2000 MPa)\n"
-        "   - 'range' : interval value (e.g., Dc = 12-30 mm)\n"
-        "   - 'qualitative' : textual descriptor (e.g., 'no plasticity')\n"
-        "   - 'missing' : not reported in paper (value and value_numeric are null)\n\n"
-        
-        "═══════════════════════════════════════════════════════════════════════════\n"
-        "ML-READY PROPERTY ENCODING EXAMPLES (diverse materials domains):\n"
-        "═══════════════════════════════════════════════════════════════════════════\n\n"
-        
-        "Example 1: Exact measurement - Superconductors\n"
-        "  Property: critical_temperature\n"
-        "  Paper value: '92.5 K'\n"
-        "  Encoding:\n"
-        '    value: "92.5"\n'
-        "    value_numeric: 92.5\n"
-        '    value_type: "exact"\n'
-        "    unit: 'K'\n\n"
-        
-        "Example 2: Lower bound - Magnetic materials\n"
-        "  Property: coercivity\n"
-        "  Paper value: '>1000 Oe'\n"
-        "  Encoding:\n"
-        '    value: ">1000"\n'
-        "    value_numeric: 1000.0\n"
-        '    value_type: "lower_bound"\n'
-        "    unit: 'Oe'\n\n"
-        
-        "Example 3: Upper bound - Optical materials\n"
-        "  Property: absorption_edge\n"
-        "  Paper value: '<400 nm'\n"
-        "  Encoding:\n"
-        '    value: "<400"\n'
-        "    value_numeric: 400.0\n"
-        '    value_type: "upper_bound"\n'
-        "    unit: 'nm'\n\n"
-        
-        "Example 4: Range - Battery materials\n"
-        "  Property: capacity_retention\n"
-        "  Paper value: '85-92%'\n"
-        "  Encoding:\n"
-        '    value: "85-92"\n'
-        "    value_numeric: 88.5\n"
-        '    value_type: "range"\n'
-        "    unit: '%'\n\n"
-        
-        "Example 5: Qualitative - Catalysts\n"
-        "  Property: selectivity\n"
-        "  Paper value: 'highly selective for CO2 reduction'\n"
-        "  Encoding:\n"
-        '    value: "highly selective for CO2 reduction"\n'
-        "    value_numeric: 0.0\n"
-        '    value_type: "qualitative"\n'
-        "    unit: null\n\n"
-        
-        "Example 6: Missing - Thin films\n"
-        "  Property: deposition_rate\n"
-        "  Paper value: Not reported\n"
-        "  Encoding:\n"
-        "    value: null\n"
-        "    value_numeric: null\n"
-        '    value_type: "missing"\n'
-        "    unit: null\n\n"
-        
-        "═══════════════════════════════════════════════════════════════════════════\n"
-        "YOUR VALIDATION TASK:\n"
-        "═══════════════════════════════════════════════════════════════════════════\n\n"
-        
-        "INPUTS YOU RECEIVE:\n"
-        "1) Aggregated data - Already merged compositions from all extraction runs\n"
-        "2) Aggregation notes - How the data was merged in Stage 1\n"
-        "3) Evaluation feedback - Hallucination reports from each run\n\n"
-        
-        "WHAT YOU MUST DO:\n"
-        "1. ✅ Review each property in the aggregated data\n"
-        "2. ✅ Check if any run flagged it as hallucinated (in evaluation feedback)\n"
-        "3. ✅ If hallucinated AND correction is clear → CORRECT it\n"
-        "4. ✅ Validate ML-ready format (value/value_numeric/value_type triplets)\n"
-        "5. ✅ Preserve inequalities as strings ('>200', '<500')\n"
-        "6. ✅ Generate specific review items for humans to verify\n\n"
-        
-        "WHAT YOUR OUTPUT SHOULD CONTAIN:\n"
-        "- final_extracted_data: The validated and corrected compositions (CompositionList format)\n"
-        "- aggregation_rationale: Detailed explanation of what you validated/corrected\n"
-        "- human_review_guide: Numbered list of specific items needing verification\n\n"
-        
-        "CRITICAL: Your final_extracted_data MUST follow the CompositionList schema exactly:\n"
-        "{\n"
-        '  "compositions": [\n'
-        "    {\n"
-        '      "composition": "Al0.5CoCrFeNi",\n'
-        '      "processing_conditions": "Arc melting + casting",\n'
-        '      "characterisation": {"XRD": "FCC structure", "SEM": "Dendritic"},\n'
-        '      "properties_of_composition": [\n'
-        "        {\n"
-        '          "property_name": "hardness",\n'
-        '          "property_symbol": "HV",\n'
-        '          "value": "450",\n'
-        "          \"value_numeric\": 450.0,\n"
-        '          "value_type": "exact",\n'
-        '          "unit": "HV"\n'
-        "        }\n"
-        "      ]\n"
-        "    }\n"
-        "  ]\n"
-        "}\n\n"
-        
-        "═══════════════════════════════════════════════════════════════════════════\n\n"
+    t = _VALIDATOR_TEMPLATES
+    parts = []
+    parts.append(t.get("system", "").strip() + "\n\n")
+    parts.append(t.get("stage1_notes_prefix", "STAGE 1 AGGREGATION NOTES:\n"))
+    parts.append(f"{aggregation_notes}\n\n")
+
+    parts.append(t.get("aggregated_data_prefix", "AGGREGATED DATA TO VALIDATE:\n"))
+    parts.append(f"{json.dumps(aggregated_data, ensure_ascii=False, indent=2)}\n")
+    parts.append(t.get("aggregated_data_suffix", "") + "\n\n")
+
+    parts.append(t.get("evaluation_feedback_header", "EVALUATION FEEDBACK (for hallucination correction):\n") + "\n")
+
+    run_block_template = t.get("run_block_template", "")
+    missing_prefix = t.get("missing_fields_prefix", "Missing Fields (<<MISSING_COUNT>>):\n")
+    hallucinated_prefix = t.get(
+        "hallucinated_fields_prefix",
+        "HALLUCINATED FIELDS (<<HALLUCINATED_COUNT>>) - READ FOR CORRECTION CLUES:\n",
     )
-    
-    # Add aggregation notes from Stage 1
-    prompt += f"STAGE 1 AGGREGATION NOTES:\n{aggregation_notes}\n\n"
-    
-    # Add the aggregated data
-    prompt += f"AGGREGATED DATA TO VALIDATE:\n"
-    prompt += f"{'─' * 80}\n"
-    prompt += f"{json.dumps(aggregated_data, ensure_ascii=False, indent=2)}\n"
-    prompt += f"{'─' * 80}\n\n"
-    
-    # Add run evaluation feedback for hallucination detection
-    prompt += "EVALUATION FEEDBACK (for hallucination correction):\n\n"
+    no_hallucinated = t.get("no_hallucinated_fields", "No hallucinated fields in this run\n")
+
     for i, run in enumerate(run_results, 1):
-        prompt += f"{'═' * 80}\n"
-        prompt += f"RUN {run.get('run_id', i)} FEEDBACK\n"
-        prompt += f"{'═' * 80}\n"
-        prompt += f"Confidence: {run.get('confidence_score', 0.0):.2f}\n\n"
-        
-        prompt += f"Rationale:\n{run.get('rationale', 'No rationale')}\n\n"
-        
-        missing = run.get('missing_fields', [])
+        run_text = (
+            run_block_template.replace("<<RUN_ID>>", str(run.get("run_id", i)))
+            .replace("<<CONFIDENCE>>", f"{run.get('confidence_score', 0.0):.2f}")
+            .replace("<<RATIONALE>>", str(run.get("rationale", "No rationale")))
+        )
+        parts.append(run_text + "\n")
+
+        missing = run.get("missing_fields", [])
         if missing:
-            prompt += f"Missing Fields ({len(missing)}):\n"
+            parts.append(missing_prefix.replace("<<MISSING_COUNT>>", str(len(missing))))
             for field in missing[:15]:
-                prompt += f"  - {field}\n"
+                parts.append(f"  - {field}\n")
             if len(missing) > 15:
-                prompt += f"  ... and {len(missing) - 15} more\n"
-            prompt += "\n"
-        
-        hallucinated = run.get('hallucinated_fields', [])
+                parts.append(f"  ... and {len(missing) - 15} more\n")
+            parts.append("\n")
+
+        hallucinated = run.get("hallucinated_fields", [])
         if hallucinated:
-            prompt += f"HALLUCINATED FIELDS ({len(hallucinated)}) - READ FOR CORRECTION CLUES:\n"
+            parts.append(hallucinated_prefix.replace("<<HALLUCINATED_COUNT>>", str(len(hallucinated))))
             for j, field in enumerate(hallucinated[:15], 1):
-                prompt += f"  {j:2d}. {field}\n"
+                parts.append(f"  {j:2d}. {field}\n")
             if len(hallucinated) > 15:
-                prompt += f"       ... and {len(hallucinated) - 15} more\n"
-            prompt += "\n"
+                parts.append(f"       ... and {len(hallucinated) - 15} more\n")
+            parts.append("\n")
         else:
-            prompt += "No hallucinated fields in this run\n\n"
-    
-    prompt += (
-        f"{'═' * 80}\n"
-        "BEGIN VALIDATION:\n"
-        f"{'═' * 80}\n\n"
-        "Review the aggregated data against the evaluation feedback below.\n"
-        "Apply hallucination corrections where the feedback indicates the fix.\n"
-        "Ensure all properties have proper ML-ready encoding.\n"
-        "Return the validated data with any necessary corrections.\n\n"
-        "In your aggregation_rationale, explain:\n"
-        "- What corrections you applied (with justification from evaluation feedback)\n"
-        "- What data you verified as correct\n"
-        "- Any remaining uncertainties or edge cases\n\n"
-        "In your human_review_guide, provide:\n"
-        "- Numbered list of specific items to verify\n"
-        "- Focus on corrected hallucinations, unusual values, or ambiguous data\n"
-        "- Be specific: mention composition names, property names, and values\n\n"
-        "Use the tool to provide your validated output.\n"
-        f"{'═' * 80}\n"
-    )
-    
-    return prompt
+            parts.append(no_hallucinated + "\n")
+
+    parts.append(t.get("validation_tail", "BEGIN VALIDATION:\n"))
+    return "".join(parts)
 
 
 def _retry_validation_with_explicit_schema(aggregated_data, aggregation_notes, run_results, paper_text, original_prompt):

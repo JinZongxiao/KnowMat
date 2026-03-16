@@ -1,9 +1,62 @@
 [build-system]
-# AVOID CHANGING REQUIRES: IT WILL BE UPDATED BY PYSCAFFOLD!
 requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "KnowMat"
+description = "AI agentic pipeline for extracting structured materials science data from PDFs and text."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "Hasan Muhammad Sayeed", email = "hasan.sayeed.71.93@gmail.com" },
+]
+dependencies = [
+  "beautifulsoup4>=4.12",
+  "langchain>=0.3.0",
+  "langgraph>=0.2.0",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "python-dotenv>=1.0",
+  "openai>=1.0",
+  "trustcall>=0.0.5",
+  "tqdm>=4.66",
+  "click>=8.0",
+  "PyYAML>=6.0",
+  "rich>=13.0",
+  "pandas>=2.0",
+  "pillow>=10.0",
+  "pdfminer.six>=20221105",
+  "markdownify>=0.13",
+]
+
+[project.optional-dependencies]
+ocr = [
+  "paddlepaddle>=3.0.0",
+  "paddleocr>=3.0.0",
+]
+standardization = [
+  "torch>=2.8.0",
+  "torchvision>=0.23.0",
+  "sentence-transformers>=5.0.0",
+]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "black",
+  "isort",
+  "ruff",
+  "mypy",
+]
+
 [tool.setuptools_scm]
-# For smarter version schemes and other configuration options,
-# check out https://github.com/pypa/setuptools_scm
 version_scheme = "no-guess-dev"
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+

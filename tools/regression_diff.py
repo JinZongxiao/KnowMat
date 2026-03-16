@@ -36,7 +36,7 @@ class RegressionDiff:
     
     def __init__(self, workspace_root: Path, ai_results_dir: Optional[Path] = None):
         self.workspace_root = workspace_root
-        self.ai_results_dir = Path(ai_results_dir) if ai_results_dir else (workspace_root / "data" / "processed")
+        self.ai_results_dir = Path(ai_results_dir) if ai_results_dir else (workspace_root / "data" / "output")
         self.gt_results_dir = workspace_root / "手工标注结果"
         self.reports_dir = workspace_root / "reports"
         self.reports_dir.mkdir(exist_ok=True)

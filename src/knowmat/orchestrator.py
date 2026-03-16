@@ -131,7 +131,8 @@ def run(
     if _env_path:
         print(f"Loaded environment variables from: {_env_path}")
 
-    # Apply CLI overrides to settings
+    # Build an isolated Settings instance for this run to avoid mutating
+    # the module-level singleton in concurrent executions.
     overrides = {}
     if output_dir:
         overrides["output_dir"] = output_dir
@@ -149,31 +150,32 @@ def run(
         overrides["flagging_model"] = flagging_model
 
     if overrides:
-        new_settings = Settings(**overrides)
-        settings.__dict__.update(new_settings.model_dump())
+        effective_settings = Settings(**{**settings.model_dump(), **overrides})
+    else:
+        effective_settings = settings
 
     # Default all per-agent models to model_name when not overridden.
     if not subfield_model and not overrides.get("subfield_model"):
-        settings.subfield_model = settings.model_name
+        effective_settings.subfield_model = effective_settings.model_name
     if not extraction_model and not overrides.get("extraction_model"):
-        settings.extraction_model = settings.model_name
+        effective_settings.extraction_model = effective_settings.model_name
     if not evaluation_model and not overrides.get("evaluation_model"):
-        settings.evaluation_model = settings.model_name
+        effective_settings.evaluation_model = effective_settings.model_name
     if not manager_model and not overrides.get("manager_model"):
-        settings.manager_model = settings.model_name
+        effective_settings.manager_model = effective_settings.model_name
     if not flagging_model and not overrides.get("flagging_model"):
-        settings.flagging_model = settings.model_name
+        effective_settings.flagging_model = effective_settings.model_name
 
     print(f"\nModel Configuration:")
-    print(f"   Subfield Detection: {settings.subfield_model}")
-    print(f"   Extraction:         {settings.extraction_model}")
-    print(f"   Evaluation:         {settings.evaluation_model}")
+    print(f"   Subfield Detection: {effective_settings.subfield_model}")
+    print(f"   Extraction:         {effective_settings.extraction_model}")
+    print(f"   Evaluation:         {effective_settings.evaluation_model}")
     print(f"   Aggregation:        rule-based (no LLM)")
-    print(f"   Validation:         {settings.manager_model}")
-    print(f"   Flagging:           {settings.flagging_model}")
+    print(f"   Validation:         {effective_settings.manager_model}")
+    print(f"   Flagging:           {effective_settings.flagging_model}")
 
     base_name = os.path.splitext(os.path.basename(pdf_path))[0]
-    paper_output_dir = os.path.join(settings.output_dir, base_name)
+    paper_output_dir = os.path.join(effective_settings.output_dir, base_name)
     os.makedirs(paper_output_dir, exist_ok=True)
 
     print(f"\nOutput directory: {paper_output_dir}\n")

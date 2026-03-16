@@ -44,14 +44,21 @@ def extract_data(state: KnowMatState) -> Dict[str, Any]:
         system_prompt = system_prompt.strip() + "\n\n" + prompt_updates
     # Build the user prompt
     user_prompt = generate_user_prompt(paper_text)
-    # Compose the final prompt.  We join the system and user prompts with a
-    # separator to indicate two distinct chat messages.  TrustCall handles
-    # message formatting internally.
-    full_prompt = system_prompt + "\n\n" + user_prompt + "\n\n" + (
-        "Provide your response using the tool."
-    )
-    # Invoke the extraction extractor
-    result = extraction_extractor.invoke(full_prompt)
+    # Prefer structured role-separated messages for better instruction fidelity.
+    # Keep a conservative fallback to the legacy single-string prompt for
+    # compatibility with older trustcall versions.
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+        {"role": "user", "content": "Provide your response using the tool."},
+    ]
+    try:
+        result = extraction_extractor.invoke({"messages": messages})
+    except Exception:
+        full_prompt = system_prompt + "\n\n" + user_prompt + "\n\n" + (
+            "Provide your response using the tool."
+        )
+        result = extraction_extractor.invoke(full_prompt)
     # TrustCall 返回结构中，responses 可能为空列表，需要安全访问
     responses = result.get("responses") or []
     if not responses:

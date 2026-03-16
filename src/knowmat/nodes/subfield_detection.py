@@ -10,7 +10,12 @@ should be concatenated with any existing prompt modifications stored in
 """
 
 from knowmat.extractors import subfield_extractor, SubFieldDetection
+from knowmat.prompt_loader import load_yaml_templates_required
 from knowmat.states import KnowMatState
+
+_SUBFIELD_PROMPT_TEMPLATE = load_yaml_templates_required(
+    "subfield_detection.yaml", ("prompt_template",)
+).get("prompt_template", "")
 
 
 def detect_sub_field(state: KnowMatState) -> dict:
@@ -29,19 +34,7 @@ def detect_sub_field(state: KnowMatState) -> dict:
         ``state['updated_prompt']`` concatenated with the new suggestion.
     """
     paper_text = state.get("paper_text", "")
-    # Compose a prompt instructing the LLM to detect the sub‑field and update the prompt
-    prompt = (
-        "You are a materials science domain expert. Given the following paper text, "
-        "determine which niche sub‑field the work belongs to. The valid choices are: "
-        "experimental, computational, simulation, machine learning, or hybrid. "
-        "Return your answer using the tool with two fields: (1) sub_field and (2) updated_prompt. "
-        "The updated_prompt should start with a short instruction that emphasises the selected sub_field "
-        "and explains how it influences the extraction (e.g. suggesting to pay more attention to modelling details "
-        "for computational papers, simulation parameters for simulation papers or describing the learning algorithm "
-        "for machine learning papers). Do not include any extraneous information.\n\n"
-        "Paper text:\n"
-        f"{paper_text}"
-    )
+    prompt = _SUBFIELD_PROMPT_TEMPLATE.format(paper_text=paper_text)
     # Invoke the extractor
     result = subfield_extractor.invoke(prompt)
     # TrustCall returns a dict with a 'responses' key containing the parsed objects
