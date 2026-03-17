@@ -49,7 +49,9 @@ class SchemaConverter:
         if not isinstance(data, dict):
             return {"Dataset_Description": "High Entropy Alloy Data Extraction Template", "Materials": []}
         if "Materials" in data and "Dataset_Description" in data:
-            return data  # type: ignore[return-value]
+            return self._expand_variable_materials_in_target_schema(  # type: ignore[return-value]
+                data, paper_text
+            )
 
         compositions = data.get("compositions", []) or []
         source_name = os.path.basename(source_path)
@@ -59,6 +61,9 @@ class SchemaConverter:
         global_doi = ocr_doi or regex_doi or ""
 
         target_compositions = [c for c in compositions if c.get("role", "Target") == "Target"]
+        target_compositions = self._expand_variable_composition_families(
+            target_compositions, paper_text
+        )
 
         groups: Dict[str, list] = defaultdict(list)
         for comp in target_compositions:
@@ -101,12 +106,262 @@ class SchemaConverter:
             }
             materials.append(material)
 
-        return {
+        result = {
             "Dataset_Description": "High Entropy Alloy Data Extraction Template",
             "schema_version": "2.2",
             "pipeline_version": "knowmat-2.1.0",
             "Materials": materials,
         }
+        return self._expand_variable_materials_in_target_schema(result, paper_text)
+
+    def _expand_variable_materials_in_target_schema(
+        self, schema_data: dict, paper_text: Optional[str]
+    ) -> dict:
+        """Expand variable-family materials even when input is already target schema."""
+        materials = list(schema_data.get("Materials", []) or [])
+        if not materials or not paper_text:
+            return schema_data
+
+        family_spec = self._extract_variable_family_spec(paper_text)
+        if not family_spec:
+            return schema_data
+
+        base_text = (family_spec["base_joined"] + family_spec["variable_element"]).lower()
+        family_material_indices = []
+        existing_codes: set[str] = set()
+        for idx, mat in enumerate(materials):
+            haystack = f"{mat.get('Alloy_Name_Raw', '')} {mat.get('Formula_Normalized', '')}".lower()
+            if base_text in haystack or "_x" in haystack or "mox" in haystack:
+                family_material_indices.append(idx)
+                code = self._extract_variant_code(haystack, family_spec["variable_element"])
+                if code:
+                    existing_codes.add(code)
+
+        if not family_material_indices:
+            return schema_data
+
+        expected_codes = [v["code"] for v in family_spec["variants"]]
+        if all(code in existing_codes for code in expected_codes):
+            return schema_data
+
+        first_idx = family_material_indices[0]
+        base_material = materials[first_idx]
+        new_family_materials: List[Dict[str, Any]] = []
+
+        # If no explicit variants exist, replace the ambiguous family entry.
+        replace_ambiguous = len(existing_codes) == 0 and len(family_material_indices) == 1
+        if not replace_ambiguous:
+            for idx in family_material_indices:
+                mat = materials[idx]
+                code = self._extract_variant_code(
+                    f"{mat.get('Alloy_Name_Raw', '')} {mat.get('Formula_Normalized', '')}",
+                    family_spec["variable_element"],
+                )
+                if code in expected_codes:
+                    new_family_materials.append(mat)
+
+        for variant in family_spec["variants"]:
+            if variant["code"] in existing_codes:
+                continue
+            clone = dict(base_material)
+            clone["Alloy_Name_Raw"] = variant["label"]
+            clone["Formula_Normalized"] = variant["normalized"]
+            raw_comp_json = self.build_composition_json(variant["normalized"])
+            validated_comp_json, _ = self.validate_composition_json(
+                raw_comp_json, variant["normalized"]
+            )
+            clone["Composition_JSON"] = validated_comp_json
+            # Do not fabricate per-variant properties when source variant is absent.
+            clone["Processed_Samples"] = []
+            new_family_materials.append(clone)
+
+        if not new_family_materials:
+            return schema_data
+
+        if replace_ambiguous:
+            retained = [m for idx, m in enumerate(materials) if idx != first_idx]
+        else:
+            retained = [m for idx, m in enumerate(materials) if idx not in family_material_indices]
+        retained.extend(new_family_materials)
+
+        # Re-index Mat_ID and description to keep schema consistent.
+        for idx, mat in enumerate(retained, start=1):
+            mat["Mat_ID"] = f"M{idx:03d}"
+            mat["description"] = f"--- Material {idx}: {mat.get('Formula_Normalized', '')} ---"
+
+        out = dict(schema_data)
+        out["Materials"] = retained
+        return out
+
+    def _expand_variable_composition_families(
+        self, target_compositions: List[dict], paper_text: Optional[str]
+    ) -> List[dict]:
+        """Expand variable families (e.g. ``FeCoCrNiMox``) into explicit variants.
+
+        This is a conservative fallback for cases where the LLM keeps only the
+        family name and misses per-variant targets like ``Mo0/Mo1/Mo3/Mo5``.
+        The function only activates when:
+        - there is a clear ``...Mox``-style family in extracted targets, and
+        - the paper text contains matching variant metadata (x-list + Mo at% list).
+        """
+        if not target_compositions or not paper_text:
+            return target_compositions
+
+        family_spec = self._extract_variable_family_spec(paper_text)
+        if not family_spec:
+            return target_compositions
+
+        family_idx = -1
+        family_text = (family_spec["base_joined"] + family_spec["variable_element"]).lower()
+        for idx, comp in enumerate(target_compositions):
+            haystack = (
+                f"{comp.get('composition', '')} {comp.get('composition_normalized', '')}"
+            ).lower().replace(" ", "")
+            if family_text in haystack or "mox" in haystack or "_x" in haystack:
+                family_idx = idx
+                break
+        if family_idx < 0:
+            return target_compositions
+
+        existing_codes: set[str] = set()
+        for comp in target_compositions:
+            code = self._extract_variant_code(
+                f"{comp.get('composition', '')} {comp.get('composition_normalized', '')}",
+                family_spec["variable_element"],
+            )
+            if code:
+                existing_codes.add(code)
+
+        source_comp = target_compositions[family_idx]
+        expanded: List[dict] = []
+        for idx, variant in enumerate(family_spec["variants"], start=1):
+            if variant["code"] in existing_codes:
+                continue
+            clone = dict(source_comp)
+            clone["composition"] = variant["label"]
+            clone["composition_normalized"] = variant["normalized"]
+            # Keep only the first as possible carrier; others are placeholders
+            # to avoid fabricating per-variant properties.
+            if idx > 1 or existing_codes:
+                clone["properties_of_composition"] = []
+                clone["grain_size_avg_um"] = None
+                clone["grain_size_text"] = None
+            expanded.append(clone)
+
+        if not expanded:
+            return target_compositions
+
+        updated = list(target_compositions)
+        if not existing_codes:
+            updated.pop(family_idx)
+        updated.extend(expanded)
+        return updated
+
+    def _extract_variable_family_spec(self, paper_text: Optional[str]) -> Optional[Dict[str, Any]]:
+        if not paper_text:
+            return None
+        x_values = self._extract_numeric_series_best(
+            paper_text,
+            [
+                r"\bx\s*=\s*([0-9.,\sandto\-]+)",
+                r"\bx\s*=\s*([^)]+)\)",
+            ],
+        )
+        mo_at_values = self._extract_numeric_series_best(
+            paper_text,
+            [
+                r"\bmo\s*content\s*=\s*([0-9.,\sandto\-]+)\s*at%?",
+                r"\bmo\s*content\s*=\s*([^)]+)\)",
+            ],
+        )
+        if not x_values or not mo_at_values:
+            return None
+        if len(x_values) != len(mo_at_values):
+            return None
+
+        token_candidates = re.findall(r"\b[A-Z][A-Za-z0-9.]*x\b", paper_text)
+        family_token = ""
+        for token in token_candidates:
+            if len(re.findall(r"[A-Z][a-z]?", token)) >= 3:
+                family_token = token
+                break
+        if not family_token:
+            return None
+
+        m = re.search(r"([A-Z][a-z]?)x\b", family_token)
+        if not m:
+            return None
+        variable_element = m.group(1)
+        base_formula = family_token[: m.start(1)]
+        base_elements = [elem for elem, _ in re.findall(r"([A-Z][a-z]?)(\d*(?:\.\d+)?)", base_formula)]
+        base_elements = [e for e in base_elements if e]
+        if not base_elements:
+            return None
+
+        variants = []
+        for x_val, mo_at in zip(x_values, mo_at_values):
+            remaining = 100.0 - float(mo_at)
+            if remaining < 0:
+                continue
+            each_base = remaining / float(len(base_elements))
+            normalized = "".join(
+                f"{elem}{self._format_pct(each_base)}" for elem in base_elements
+            ) + f"{variable_element}{self._format_pct(float(mo_at))}"
+            code = self._format_x_code(x_val)
+            label = (
+                f"{''.join(base_elements)}{variable_element}{self._format_x_label(x_val)} "
+                f"({variable_element}{code})"
+            )
+            variants.append({"x": x_val, "mo_at": mo_at, "code": code, "label": label, "normalized": normalized})
+        if len(variants) < 2:
+            return None
+        return {
+            "variable_element": variable_element,
+            "base_elements": base_elements,
+            "base_joined": "".join(base_elements),
+            "variants": variants,
+        }
+
+    @staticmethod
+    def _extract_numeric_series(text: str, pattern: str) -> List[float]:
+        m = re.search(pattern, text, re.IGNORECASE)
+        if not m:
+            return []
+        segment = m.group(1)
+        nums = re.findall(r"\d+(?:\.\d+)?", segment)
+        return [float(v) for v in nums]
+
+    @classmethod
+    def _extract_numeric_series_best(cls, text: str, patterns: List[str]) -> List[float]:
+        best: List[float] = []
+        for pattern in patterns:
+            nums = cls._extract_numeric_series(text, pattern)
+            if len(nums) > len(best):
+                best = nums
+        return best
+
+    @staticmethod
+    def _format_pct(value: float) -> str:
+        return f"{value:.3f}".rstrip("0").rstrip(".")
+
+    @staticmethod
+    def _format_x_code(x_val: float) -> str:
+        # x=0.1 -> Mo1, x=0.3 -> Mo3, x=0.5 -> Mo5
+        return str(int(round(x_val * 10)))
+
+    def _format_x_label(self, x_val: float) -> str:
+        if abs(x_val) < 1e-9:
+            return "0"
+        return self._format_pct(x_val)
+
+    @staticmethod
+    def _extract_variant_code(text: str, variable_element: str) -> Optional[str]:
+        if not text:
+            return None
+        m = re.search(rf"\b{re.escape(variable_element)}\s*(\d+)\b", text, re.IGNORECASE)
+        if m:
+            return m.group(1)
+        return None
 
     # ------------------------------------------------------------------
     # Helpers – each is independently testable
