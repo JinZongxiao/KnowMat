@@ -417,6 +417,20 @@ class SchemaConverter:
         # so that separators like '-', '/', ' ' don't confuse pymatgen
         # e.g. "Ni-21.49Cr-13.13W" → "Ni21.49Cr13.13W"
         sanitized = re.sub(r"[^A-Za-z0-9.]", "", cleaned)
+
+        sanitized = re.sub(r"[^A-Za-z0-9.]", "", cleaned)
+
+        if sanitized:
+            if sanitized[-1].isalpha():
+                tokens = re.findall(r"[A-Z][a-z]?|\d+(?:.\d+)?", sanitized)
+                elements = [t for t in tokens if t[0].isalpha()]
+                numbers = [t for t in tokens if t[0].isdigit()]
+                if elements:
+                    last_number  = 100 - sum(float(n) for n in numbers) 
+                    numbers.append(str(last_number))
+                    elements.append(elements.pop(0))
+                    rebuilt = [f"{e}{n}" for e, n in zip(elements, numbers)]
+                    sanitized = "".join(rebuilt)
         if _PymatgenComposition is not None:
             try:
                 pmg_comp = _PymatgenComposition(sanitized)
@@ -426,7 +440,6 @@ class SchemaConverter:
                 logger.debug(
                     "pymatgen failed to parse '%s', falling back to regex", formula
                 )
-
         # Match element tokens with optional numeric amount (default 1.0)
         for element, amount in re.findall(r"([A-Z][a-z]?)(\d+(?:\.\d+)?)?", cleaned):
             if not element:
