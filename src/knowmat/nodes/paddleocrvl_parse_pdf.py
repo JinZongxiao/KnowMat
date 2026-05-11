@@ -1163,7 +1163,12 @@ def _finalize_pdf_parse(
     extracted_text: str,
     metadata: Dict[str, Any],
     _ocr_items: List[Dict[str, Any]],
+    is_api_mode: bool = False,
 ) -> Dict[str, Any]:
+    if is_api_mode:
+        from knowmat.pdf.paddleocr_api_result_converter import clean_api_markdown
+        extracted_text = clean_api_markdown(extracted_text)
+
     if _ocr_items:
         sanitize_ocr_items_vl_artifacts(_ocr_items)
         normalize_figure_ocr_items(_ocr_items)
@@ -1184,7 +1189,7 @@ def _finalize_pdf_parse(
     if resolved_doi and resolved_doi not in cleaned_text:
         cleaned_text = f"DOI: {resolved_doi}\n\n{cleaned_text}"
 
-    if _append_missing_ocr_paragraphs_enabled():
+    if _append_missing_ocr_paragraphs_enabled() and not is_api_mode:
         cleaned_text = _append_missing_paragraph_hints(cleaned_text, _ocr_items)
 
     pdf_name = source_path.stem
@@ -1476,6 +1481,7 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
             extracted_text,
             metadata,
             _ocr_items,
+            is_api_mode=use_api_mode,
         )
         return result
     except MineruAPIError as exc:

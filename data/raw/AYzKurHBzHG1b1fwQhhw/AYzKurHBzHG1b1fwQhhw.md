@@ -6,18 +6,6 @@ To cite this article: Yixi Shen and Douglas E Spearot 2021 Modelling Simul. Mate
 
 View the  $ \underline{\text{article online}} $ for updates and enhancements.
 
-## You may also like
-
-<div style="text-align: center;"><img src="imgs/img_in_image_box_73_1301_445_1581.jpg" alt="Image" width="31%" /></div>
-
-- On the real-time atomistic deformation of nano twinned CrCoFeNi high entropy alloy Shaohua Yan, Qing H Qin and Zheng Zhong
-
-- Interplay between microstructure and deformation behavior of a laser-welded CoCrFeNi high entropy alloy
-
-$^{z}$ G Zhu, F L Ng, J W Qiao et al.
-
-- Plastic deformation and strengthening mechanism of FCC/HCP nano-laminated dual-phase CoCrFeMnNi high entropy alloy
-
 Cheng Huang, Yin Yao, Xianghe Peng et al.
 
 ## IOP ebooks™
@@ -41,8 +29,6 @@ E-mail: dspearot@ufl.edu
 Accepted for publication 26 October 2021  
 
 Published 15 November 2021
-
-<div style="text-align: center;"><img src="imgs/img_in_image_box_864_600_934_678.jpg" alt="Image" width="5%" /></div>
 
 ## Abstract
 
@@ -102,7 +88,12 @@ To study the mobility of dislocations with 0^\circ (screw), 30^\circ, 60^\circ a
 
 <div style="text-align: center;">Table 2. Dislocation character angles, lattice orientations and approximate dimensions for each simulation model.</div>
 
-<table border=1 style='margin: auto; word-wrap: break-word;'><tr><td style='text-align: center; word-wrap: break-word;'>$ \theta(\degree) $</td><td style='text-align: center; word-wrap: break-word;'>X</td><td style='text-align: center; word-wrap: break-word;'>Y</td><td style='text-align: center; word-wrap: break-word;'>Z</td><td style='text-align: center; word-wrap: break-word;'>L_{x}</td><td style='text-align: center; word-wrap: break-word;'>L_{y}</td><td style='text-align: center; word-wrap: break-word;'>L_{z}</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>0 (screw)</td><td style='text-align: center; word-wrap: break-word;'>[101]</td><td style='text-align: center; word-wrap: break-word;'>[111]</td><td style='text-align: center; word-wrap: break-word;'>[121]</td><td style='text-align: center; word-wrap: break-word;'>20 nm</td><td style='text-align: center; word-wrap: break-word;'>16 nm</td><td style='text-align: center; word-wrap: break-word;'>87 nm</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>30</td><td style='text-align: center; word-wrap: break-word;'>[112]</td><td style='text-align: center; word-wrap: break-word;'>[111]</td><td style='text-align: center; word-wrap: break-word;'>[110]</td><td style='text-align: center; word-wrap: break-word;'>35 nm</td><td style='text-align: center; word-wrap: break-word;'>16 nm</td><td style='text-align: center; word-wrap: break-word;'>50 nm</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>60</td><td style='text-align: center; word-wrap: break-word;'>[011]</td><td style='text-align: center; word-wrap: break-word;'>[111]</td><td style='text-align: center; word-wrap: break-word;'>[211]</td><td style='text-align: center; word-wrap: break-word;'>20 nm</td><td style='text-align: center; word-wrap: break-word;'>16 nm</td><td style='text-align: center; word-wrap: break-word;'>87 nm</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>90 (edge)</td><td style='text-align: center; word-wrap: break-word;'>[121]</td><td style='text-align: center; word-wrap: break-word;'>[111]</td><td style='text-align: center; word-wrap: break-word;'>[101]</td><td style='text-align: center; word-wrap: break-word;'>35 nm</td><td style='text-align: center; word-wrap: break-word;'>16 nm</td><td style='text-align: center; word-wrap: break-word;'>50 nm</td></tr></table>
+| $ \theta(\degree) $ | X | Y | Z | L_{x} | L_{y} | L_{z} |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 (screw) | [101] | [111] | [121] | 20 nm | 16 nm | 87 nm |
+| 30 | [112] | [111] | [110] | 35 nm | 16 nm | 50 nm |
+| 60 | [011] | [111] | [211] | 20 nm | 16 nm | 87 nm |
+| 90 (edge) | [121] | [111] | [101] | 35 nm | 16 nm | 50 nm |
 
 ## 2.3. Loading condition and average velocity
 
@@ -439,15 +430,3 @@ Yixi Shen  $ {}^{ID} $ https://orcid.org/0000-0002-6568-5907 Douglas E Spearot  
 [53] Zeng Y, Cai X and Koslowski M 2019 Effects of the stacking fault energy fluctuations on the strengthening of alloys Acta Mater. 164 1–11
 
 [54] Zhang Z J, Mao M M, Wang J, Gludovatz B, Zhang Z, Mao S X, George E P, Yu Q and Ritchie R O 2015 Nanoscale origins of the damage tolerance of the high-entropy alloy CrMnFeCoNi Nat. Commun. 6 2–7
-
-=== SUPPLEMENTARY OCR LINES (paragraph blocks missing from main text) ===
-
-Z G Zhu, F L Ng, J W Qiao et al.
-
-<div style="text-align: center;">Figure 10. Mobility curves for screw, 30°, 60° and edge dislocations in positive motion direction in an equiatomic FeNiCrCoCu HEA at 300 K.</div>
-
-<div style="text-align: center;">Figure 11. Mobility curves for (a) 30° and (b) 60° dislocations in positive and negative motion directions in an equiatomic HEA and homogeneous Cu at 300 K.</div>
-
-[21] Smith T M, Hooshmand M S, Esser B D, Otto F, Mccomb D W, George E P, Ghazisaeidi M and Mills M J 2016 Atomic-scale characterization and modeling of 60° dislocations in a high-entropy alloy Acta Mater. 110 352–63
-
-[44] Farkas D, Mutasa B, Vailhe C and Ternes K 1995 Interatomic potentials for B2 nial and martensitic phases Modelling Simul. Mater. Sci. Eng. 3 201–14

@@ -15,8 +15,20 @@ _FORMULA_PATTERN = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 _INLINE_FORMULA_PATTERN = re.compile(r"(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)")
 _IMAGE_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
 _HTML_IMG_PATTERN = re.compile(r'<img\s+[^>]*src="([^"]+)"[^>]*/?>',re.IGNORECASE)
+_IMG_WIDTH_PATTERN = re.compile(r'width="(\d+)%"', re.IGNORECASE)
 _TABLE_LINE_PATTERN = re.compile(r"^\|.+\|$")
 _HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+)$")
+_HTML_TABLE_PATTERN = re.compile(
+    r"<table\b[^>]*>.*?</table>", re.DOTALL | re.IGNORECASE
+)
+_SMALL_IMG_DIV_PATTERN = re.compile(
+    r'<div[^>]*>\s*<img\s+[^>]*width="(\d+)%"[^>]*/?>.*?</div>',
+    re.DOTALL | re.IGNORECASE,
+)
+_YOU_MAY_ALSO_LIKE_PATTERN = re.compile(
+    r"##\s+You may also like.*?(?=\n##\s|\n#\s|\n[A-Z][a-z].*\n)",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 def _parse_markdown_blocks(
@@ -79,6 +91,12 @@ def _parse_markdown_blocks(
             # Also check for HTML <img> tag (PaddleOCR API uses this format)
             html_img_match = _HTML_IMG_PATTERN.search(line)
             if html_img_match:
+                # Skip tiny images (icons/logos) based on width percentage
+                width_match = _IMG_WIDTH_PATTERN.search(line)
+                img_width_pct = int(width_match.group(1)) if width_match else 100
+                if img_width_pct <= 10:
+                    i += 1
+                    continue
                 img_ref = html_img_match.group(1)
                 caption = ""
                 resolved_path = ""
@@ -162,7 +180,10 @@ def _parse_markdown_blocks(
             if _IMAGE_PATTERN.match(curr.strip()):
                 break
             if _HTML_IMG_PATTERN.search(curr):
-                break
+                # Only break for non-tiny images
+                w_match = _IMG_WIDTH_PATTERN.search(curr)
+                if not w_match or int(w_match.group(1)) > 10:
+                    break
             if _HEADING_PATTERN.match(curr.strip()):
                 break
             para_lines.append(curr)
@@ -249,6 +270,47 @@ def convert_paddleocr_api_to_knowmat(
     }
 
     return extracted_text, metadata, all_ocr_items
+
+
+def clean_api_markdown(text: str) -> str:
+    """Clean PaddleOCR/MinerU API markdown output.
+
+    - Remove journal boilerplate ("You may also like", etc.)
+    - Remove small image divs (width <= 10%)
+    - Convert simple HTML tables to markdown (keep complex ones as HTML)
+    """
+    from knowmat.pdf.html_cleaner import (
+        _has_complex_cell_attributes,
+        _html_table_to_markdown,
+    )
+
+    if not text:
+        return ""
+
+    # 1. Strip "You may also like" section (heading + bullet list + images)
+    result = _YOU_MAY_ALSO_LIKE_PATTERN.sub("", text)
+
+    # 2. Remove small image divs (width <= 10%)
+    def _remove_small_img(m: re.Match) -> str:
+        pct = int(m.group(1))
+        return "" if pct <= 10 else m.group(0)
+
+    result = _SMALL_IMG_DIV_PATTERN.sub(_remove_small_img, result)
+
+    # 3. Convert simple HTML tables to markdown
+    def _convert_table(m: re.Match) -> str:
+        table_html = m.group(0)
+        if _has_complex_cell_attributes(table_html):
+            return table_html
+        md_table = _html_table_to_markdown(table_html)
+        return md_table if md_table != table_html else table_html
+
+    result = _HTML_TABLE_PATTERN.sub(_convert_table, result)
+
+    # 4. Collapse excessive blank lines
+    result = re.sub(r"\n{4,}", "\n\n\n", result)
+
+    return result.strip()
 
 
 def extract_formulas_per_page(
