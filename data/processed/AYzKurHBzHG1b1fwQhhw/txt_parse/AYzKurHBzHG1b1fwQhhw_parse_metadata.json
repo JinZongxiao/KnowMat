@@ -1,7 +1,0 @@
-{
-  "backend": "txt-direct",
-  "source_file": "data\\raw\\AYzKurHBzHG1b1fwQhhw\\AYzKurHBzHG1b1fwQhhw.md",
-  "doi": "10.1088/1361-651X/ac336a",
-  "ocr_sidecar": "data\\raw\\AYzKurHBzHG1b1fwQhhw\\AYzKurHBzHG1b1fwQhhw.json",
-  "paper_text_path": "data\\processed\\AYzKurHBzHG1b1fwQhhw\\txt_parse\\AYzKurHBzHG1b1fwQhhw_final_output.md"
-}

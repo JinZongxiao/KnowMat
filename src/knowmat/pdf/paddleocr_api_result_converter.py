@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 _FORMULA_PATTERN = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 _INLINE_FORMULA_PATTERN = re.compile(r"(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)")
 _IMAGE_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+_HTML_IMG_PATTERN = re.compile(r'<img\s+[^>]*src="([^"]+)"[^>]*/?>',re.IGNORECASE)
 _TABLE_LINE_PATTERN = re.compile(r"^\|.+\|$")
 _HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+)$")
 
@@ -72,8 +73,39 @@ def _parse_markdown_blocks(
                 })
             continue
 
-        # Image reference
+        # Image reference (markdown syntax)
         img_match = _IMAGE_PATTERN.match(line.strip())
+        if not img_match:
+            # Also check for HTML <img> tag (PaddleOCR API uses this format)
+            html_img_match = _HTML_IMG_PATTERN.search(line)
+            if html_img_match:
+                img_ref = html_img_match.group(1)
+                caption = ""
+                resolved_path = ""
+                if image_urls and img_ref in image_urls and images_dir:
+                    img_url = image_urls[img_ref]
+                    local_name = Path(img_ref).name or f"page{page_num}_img.jpg"
+                    local_path = images_dir / local_name
+                    if not local_path.exists():
+                        try:
+                            resp = requests.get(img_url, timeout=60)
+                            resp.raise_for_status()
+                            local_path.parent.mkdir(parents=True, exist_ok=True)
+                            local_path.write_bytes(resp.content)
+                            resolved_path = str(local_path)
+                        except Exception as exc:
+                            logger.warning("Failed to download image %s: %s", img_ref, exc)
+                    else:
+                        resolved_path = str(local_path)
+                if resolved_path:
+                    items.append({
+                        "typer": "image",
+                        "data": {"image_path": resolved_path, "caption": caption},
+                        "page": page_num,
+                        "block_label": "figure",
+                    })
+                i += 1
+                continue
         if img_match:
             caption = img_match.group(1)
             img_ref = img_match.group(2)
@@ -128,6 +160,8 @@ def _parse_markdown_blocks(
             if _TABLE_LINE_PATTERN.match(curr.strip()):
                 break
             if _IMAGE_PATTERN.match(curr.strip()):
+                break
+            if _HTML_IMG_PATTERN.search(curr):
                 break
             if _HEADING_PATTERN.match(curr.strip()):
                 break
@@ -191,20 +225,6 @@ def convert_paddleocr_api_to_knowmat(
                 md_text, page_num, images_dir, image_urls
             )
             all_ocr_items.extend(page_items)
-
-            # Handle outputImages (rendered layout images)
-            output_images = layout_res.get("outputImages", {})
-            if output_images and images_dir:
-                for img_name, img_url in output_images.items():
-                    local_path = images_dir / f"{img_name}_{page_num}.jpg"
-                    if not local_path.exists():
-                        try:
-                            resp = requests.get(img_url, timeout=60)
-                            if resp.status_code == 200:
-                                local_path.parent.mkdir(parents=True, exist_ok=True)
-                                local_path.write_bytes(resp.content)
-                        except Exception as exc:
-                            logger.debug("Failed to download outputImage %s: %s", img_name, exc)
 
     extracted_text = "\n\n".join(page_texts)
 

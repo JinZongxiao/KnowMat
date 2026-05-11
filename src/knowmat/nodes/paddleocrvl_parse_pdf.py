@@ -993,7 +993,7 @@ def _extract_pdf_with_mineru_api(
             full_md = md.read_text("utf-8")
             break
 
-    figures_dest = out_dir / "_mineru_images"
+    figures_dest = out_dir / "images"
     figures_dest.mkdir(parents=True, exist_ok=True)
     extracted_text, metadata, ocr_items = convert_mineru_to_knowmat(
         content_list, full_md, pdf_path, extracted_dir, page_indices, figures_dest
@@ -1042,7 +1042,7 @@ def _extract_pdf_with_paddleocr_api(
 
     pages_data = client.download_jsonl(jsonl_url)
 
-    images_dir = out_dir / "_paddleocr_images"
+    images_dir = out_dir / "images"
     images_dir.mkdir(parents=True, exist_ok=True)
 
     extracted_text, metadata, ocr_items = convert_paddleocr_api_to_knowmat(
@@ -1350,27 +1350,10 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
     digest = md5_file_digest(source_path)
     paddleocr_api_mode = _use_paddleocr_api_mode()
     mineru_mode = _use_mineru_api_mode()
-    if paddleocr_api_mode:
-        sig = cache_signature_key(
-            digest,
-            render_dpi=0,
-            vl_version="paddleocr_api_vl15",
-            pages_key=pages_key,
-            skip_ppstructure=False,
-            skip_chem_reocr=True,
-        )
-    elif mineru_mode:
-        mineru_model = os.getenv("MINERU_MODEL_VERSION", "vlm").strip()
-        pp_token = os.getenv("PADDLEOCR_API_TOKEN", "").strip()
-        sig = cache_signature_key(
-            digest,
-            render_dpi=0,
-            vl_version=f"mineru_{mineru_mode}_{mineru_model}" + ("_ppv3" if pp_token else ""),
-            pages_key=pages_key,
-            skip_ppstructure=not bool(pp_token),
-            skip_chem_reocr=True,
-        )
-    else:
+
+    # Cache signature only needed for local OCR mode
+    sig = ""
+    if not (paddleocr_api_mode or mineru_mode):
         sig = cache_signature_key(
             digest,
             render_dpi=render_dpi,
@@ -1379,48 +1362,53 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
             skip_ppstructure=skip_pp,
             skip_chem_reocr=skip_chem,
         )
-    cache_bucket = ocr_cache_bucket(Path(output_dir), sig)
-    skip_cache_read = bool(state.get("ocr_skip_cached", False)) or _env_truthy(
-        "KNOWMAT_OCR_SKIP_CACHED"
-    )
-    no_cache_write = _env_truthy("KNOWMAT_OCR_NO_CACHE_WRITE")
+    # For API modes, skip _ocr_cache — figures are saved to images/ during extraction,
+    # and the .md/.json files themselves serve as the cache.
+    use_api_mode = paddleocr_api_mode or mineru_mode
 
-    if not skip_cache_read:
-        cached = try_load_ocr_cache(cache_bucket)
-        if cached is not None:
-            cached_items = list(cached.get("ocr_items") or [])
-            cached_metadata = dict(cached.get("metadata") or {})
-            cached_render_dpi = int(cached_metadata.get("render_dpi") or render_dpi)
-            figures_dir = cache_bucket / "figures"
-            cached_items = _persist_figure_images(
-                cached_items,
-                str(source_path),
-                figures_dir,
-                render_dpi=cached_render_dpi,
-            )
-            if figures_dir.exists():
-                cached_metadata["figure_dir"] = str(figures_dir.resolve())
-            if not no_cache_write:
-                try:
-                    save_ocr_cache(
-                        cache_bucket,
-                        {
-                            "extracted_text": cached["extracted_text"],
-                            "metadata": cached_metadata,
-                            "ocr_items": cached_items,
-                        },
-                    )
-                except OSError as exc:
-                    logger.warning("Could not refresh OCR cache at %s: %s", cache_bucket, exc)
-            logger.info("Loaded OCR result from cache: %s", cache_bucket)
-            return _finalize_pdf_parse(
-                source_path,
-                parse_output_dir,
-                save_intermediate,
-                cached["extracted_text"],
-                cached_metadata,
-                cached_items,
-            )
+    if not use_api_mode:
+        cache_bucket = ocr_cache_bucket(Path(output_dir), sig)
+        skip_cache_read = bool(state.get("ocr_skip_cached", False)) or _env_truthy(
+            "KNOWMAT_OCR_SKIP_CACHED"
+        )
+        no_cache_write = _env_truthy("KNOWMAT_OCR_NO_CACHE_WRITE")
+
+        if not skip_cache_read:
+            cached = try_load_ocr_cache(cache_bucket)
+            if cached is not None:
+                cached_items = list(cached.get("ocr_items") or [])
+                cached_metadata = dict(cached.get("metadata") or {})
+                cached_render_dpi = int(cached_metadata.get("render_dpi") or render_dpi)
+                figures_dir = cache_bucket / "figures"
+                cached_items = _persist_figure_images(
+                    cached_items,
+                    str(source_path),
+                    figures_dir,
+                    render_dpi=cached_render_dpi,
+                )
+                if figures_dir.exists():
+                    cached_metadata["figure_dir"] = str(figures_dir.resolve())
+                if not no_cache_write:
+                    try:
+                        save_ocr_cache(
+                            cache_bucket,
+                            {
+                                "extracted_text": cached["extracted_text"],
+                                "metadata": cached_metadata,
+                                "ocr_items": cached_items,
+                            },
+                        )
+                    except OSError as exc:
+                        logger.warning("Could not refresh OCR cache at %s: %s", cache_bucket, exc)
+                logger.info("Loaded OCR result from cache: %s", cache_bucket)
+                return _finalize_pdf_parse(
+                    source_path,
+                    parse_output_dir,
+                    save_intermediate,
+                    cached["extracted_text"],
+                    cached_metadata,
+                    cached_items,
+                )
 
     try:
         if paddleocr_api_mode:
@@ -1451,15 +1439,36 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
                 save_intermediate=save_intermediate,
                 page_indices=selected_pages,
             )
-        figures_dir = cache_bucket / "figures"
-        _ocr_items = _persist_figure_images(
-            _ocr_items,
-            str(source_path),
-            figures_dir,
-            render_dpi=int(metadata.get("render_dpi") or render_dpi),
-        )
-        if figures_dir.exists():
-            metadata["figure_dir"] = str(figures_dir.resolve())
+
+        # For local OCR, persist figures via bbox cropping and use _ocr_cache
+        if not use_api_mode:
+            figures_dir = cache_bucket / "figures"
+            _ocr_items = _persist_figure_images(
+                _ocr_items,
+                str(source_path),
+                figures_dir,
+                render_dpi=int(metadata.get("render_dpi") or render_dpi),
+            )
+            if figures_dir.exists():
+                metadata["figure_dir"] = str(figures_dir.resolve())
+            if not no_cache_write:
+                try:
+                    save_ocr_cache(
+                        cache_bucket,
+                        {
+                            "extracted_text": extracted_text,
+                            "metadata": metadata,
+                            "ocr_items": _ocr_items,
+                        },
+                    )
+                except OSError as exc:
+                    logger.warning("Could not write OCR cache to %s: %s", cache_bucket, exc)
+        else:
+            # For API modes, figure_dir is images/ under the paper directory
+            images_dir = Path(parse_output_dir) / "images"
+            if images_dir.exists():
+                metadata["figure_dir"] = str(images_dir.resolve())
+
         result = _finalize_pdf_parse(
             source_path,
             parse_output_dir,
@@ -1468,18 +1477,6 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
             metadata,
             _ocr_items,
         )
-        if not no_cache_write:
-            try:
-                save_ocr_cache(
-                    cache_bucket,
-                    {
-                        "extracted_text": extracted_text,
-                        "metadata": metadata,
-                        "ocr_items": _ocr_items,
-                    },
-                )
-            except OSError as exc:
-                logger.warning("Could not write OCR cache to %s: %s", cache_bucket, exc)
         return result
     except MineruAPIError as exc:
         raise RuntimeError(f"Failed to parse PDF with MinerU API: {str(exc)}") from exc
