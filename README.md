@@ -14,7 +14,7 @@ KnowMat is an AI-driven, agentic pipeline that automatically extracts structured
 
 - **Research-grade batch processing**: Process entire directories of PDF/TXT files; supports **two-stage** workflow: run OCR only (`--ocr-only`) first, then batch LLM extraction
 - **High accuracy**: Multi-agent architecture with up to 3 rounds of extraction/evaluation iteration
-- **Dual-engine OCR**: PaddleOCR-VL 1.5 (layout + reading order) + PP-StructureV3 (complex tables & formulas)
+- **Dual-engine OCR**: PaddleOCR-VL 1.5 (layout + reading order) + PP-StructureV3 (complex tables & formulas); optional MinerU cloud API mode (`--mineru-api`)
 - **Formula & table enhancement**: Precise HTML table extraction and high-fidelity LaTeX formulas (auto-fixes chemical subscripts)
 - **Two-stage validation**: Rule aggregation + LLM hallucination correction
 - **Property standardization**: Auto-mapping attribute names to standard forms
@@ -159,6 +159,10 @@ python -m knowmat --help
 | `PADDLEOCRVL_VERSION` | No | `1.5` | PaddleOCR-VL version |
 | `LANGCHAIN_API_KEY` | No | - | LangSmith API key |
 | `LANGCHAIN_TRACING_V2` | No | `false` | Enable LangSmith tracing |
+| `MINERU_API_KEY` | No | - | MinerU API key (enables `--mineru-api`) |
+| `MINERU_MODEL_VERSION` | No | `vlm` | MinerU model: `vlm` or `doclayout` |
+| `MINERU_API_TIMEOUT_SEC` | No | `600` | MinerU polling timeout (seconds) |
+| `MINERU_LANGUAGE` | No | `en` | Document language for MinerU |
 
 ### OCR Tuning (Optional)
 
@@ -205,6 +209,44 @@ python -m knowmat --input-folder path/to/papers
 
 This generates `.md` files from PDFs first, then processes them with LLM.
 
+### MinerU Cloud API Mode
+
+KnowMat supports using [MinerU](https://mineru.net) cloud API as an alternative OCR backend. MinerU provides high-quality PDF parsing with VLM-based layout recognition, producing better results for complex tables, formulas, and figures.
+
+**Setup:**
+
+Add your MinerU API key to `.env`:
+
+```bash
+MINERU_API_KEY="your_mineru_api_key"
+MINERU_MODEL_VERSION=vlm          # Options: vlm (default), doclayout
+MINERU_API_TIMEOUT_SEC=600        # Polling timeout in seconds
+MINERU_LANGUAGE=en                # Document language
+```
+
+**Usage:**
+
+```bash
+# OCR only with MinerU API
+python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api
+
+# Full pipeline with MinerU API
+python -m knowmat --input-folder path/to/papers --mineru-api
+
+# Force re-run (ignore cache)
+python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api --skip-cached-ocr
+```
+
+The `--mineru-api` flag activates MinerU API mode. Without this flag, the local PaddleOCR-VL inference is used (default behavior). MinerU API mode requires `MINERU_API_KEY` to be set in `.env`.
+
+**Advantages over local OCR:**
+- No GPU required on the local machine
+- Higher quality figure extraction (pre-cropped by MinerU)
+- Better VLM-based layout analysis
+- Supports complex multi-column layouts
+
+**Note:** MinerU API requires network access and has usage limits based on your API plan.
+
 ### Advanced Options
 
 ```bash
@@ -226,6 +268,8 @@ python -m knowmat \
 | `--ocr-only` | Run OCR only, skip LLM extraction | `False` |
 | `--max-runs` | Max extraction/evaluation rounds | `1` |
 | `--workers` | Concurrent file processing | `1` |
+| `--mineru-api` | Use MinerU cloud API for OCR | `False` |
+| `--skip-cached-ocr` | Ignore OCR cache, force re-inference | `False` |
 | `--force-rerun` | Force re-OCR and re-extraction | `False` |
 | `--enable-property-standardization` | Enable property name standardization | `False` |
 | `--subfield-model` | Subfield detection model | `LLM_MODEL` |

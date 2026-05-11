@@ -14,7 +14,7 @@ KnowMat 是一个 AI 驱动的 Agentic 流水线，可将非结构化科学文�
 
 - **科研级批处理**：支持整目录批量处理 PDF/TXT 文件；支持**两阶段**工作流：先仅跑 OCR（`--ocr-only`），再统一跑大模型抽取
 - **高准确度**：多代理架构，支持最多 3 轮抽取/评估迭代优化
-- **双引擎高精度 OCR**：PaddleOCR-VL 1.5（宏观版面与阅读顺序）+ PP-StructureV3（微观复杂表格与公式精修）
+- **双引擎高精度 OCR**：PaddleOCR-VL 1.5（宏观版面与阅读顺序）+ PP-StructureV3（微观复杂表格与公式精修）；可选 MinerU 云端 API 模式（`--mineru-api`）
 - **公式与表格增强**：精准提取复杂 HTML 跨行表格与高保真 LaTeX 公式（自动修复化学式上下标）
 - **两阶段校验**：规则聚合 + LLM 幻觉修正
 - **属性标准化**：自动将属性名称映射为标准形式
@@ -159,6 +159,10 @@ python -m knowmat --help
 | `PADDLEOCRVL_VERSION` | 否 | `1.5` | PaddleOCR-VL 版本 |
 | `LANGCHAIN_API_KEY` | 否 | - | LangSmith API 密钥 |
 | `LANGCHAIN_TRACING_V2` | 否 | `false` | 启用 LangSmith tracing |
+| `MINERU_API_KEY` | 否 | - | MinerU API 密钥（启用 `--mineru-api`） |
+| `MINERU_MODEL_VERSION` | 否 | `vlm` | MinerU 模型：`vlm` 或 `doclayout` |
+| `MINERU_API_TIMEOUT_SEC` | 否 | `600` | MinerU 轮询超时时间（秒） |
+| `MINERU_LANGUAGE` | 否 | `en` | MinerU 文档语言 |
 
 ### OCR 调优（可选）
 
@@ -203,6 +207,44 @@ python -m knowmat --input-folder path/to/papers --ocr-only
 python -m knowmat --input-folder path/to/papers
 ```
 
+### MinerU 云端 API 模式
+
+KnowMat 支持使用 [MinerU](https://mineru.net) 云端 API 作为替代 OCR 后端。MinerU 提供基于 VLM 的高质量 PDF 解析，对复杂表格、公式和图片的识别效果更好。
+
+**配置：**
+
+在 `.env` 中添加 MinerU API 密钥：
+
+```bash
+MINERU_API_KEY="your_mineru_api_key"
+MINERU_MODEL_VERSION=vlm          # 可选：vlm（默认）、doclayout
+MINERU_API_TIMEOUT_SEC=600        # 轮询超时时间（秒）
+MINERU_LANGUAGE=en                # 文档语言
+```
+
+**使用方法：**
+
+```bash
+# 仅 OCR（使用 MinerU API）
+python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api
+
+# 全流程（MinerU API + LLM 抽取）
+python -m knowmat --input-folder path/to/papers --mineru-api
+
+# 强制重新跑（忽略缓存）
+python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api --skip-cached-ocr
+```
+
+`--mineru-api` 参数启用 MinerU API 模式。不加此参数时，默认使用本地 PaddleOCR-VL 推理。MinerU API 模式需要在 `.env` 中配置 `MINERU_API_KEY`。
+
+**相比本地 OCR 的优势：**
+- 本地无需 GPU
+- 更高质量的图片提取（由 MinerU 预裁剪）
+- 更优的 VLM 版面分析
+- 更好地支持复杂多栏排版
+
+**注意：** MinerU API 需要网络连接，用量受 API 套餐限制。
+
 ### 进阶参数
 
 ```bash
@@ -224,6 +266,8 @@ python -m knowmat \
 | `--ocr-only` | 仅跑 OCR，跳过 LLM 抽取 | `False` |
 | `--max-runs` | 最大抽取/评估轮数 | `1` |
 | `--workers` | 并发文件处理数 | `1` |
+| `--mineru-api` | 使用 MinerU 云端 API 进行 OCR | `False` |
+| `--skip-cached-ocr` | 忽略 OCR 缓存，强制重新推理 | `False` |
 | `--force-rerun` | 强制重新 OCR 并重新抽取 | `False` |
 | `--enable-property-standardization` | 启用属性名标准化 | `False` |
 | `--subfield-model` | 子领域识别模型 | `LLM_MODEL` |

@@ -1,5 +1,6 @@
 """
-PDF parsing node using PaddleOCR-VL, with optional legacy PaddleOCR fallback.
+PDF parsing node using PaddleOCR-VL, with optional legacy PaddleOCR fallback,
+or MinerU cloud API when MINERU_API_KEY is configured.
 
 Legacy mode still runs PP-StructureV3 (layout seed + :func:`route_and_reocr` refinement).
 """
@@ -65,6 +66,12 @@ from knowmat.pdf.section_normalizer import (
     structure_sections,
 )
 from knowmat.pdf.formula_formatter import format_formula_text
+from knowmat.pdf.mineru_api_client import MineruAPIError, MineruLightweightClient, MineruPrecisionClient
+from knowmat.pdf.mineru_result_converter import (
+    _pages_range_from_indices,
+    convert_lightweight_md_to_knowmat,
+    convert_mineru_to_knowmat,
+)
 from knowmat.app_config import settings
 from knowmat.states import KnowMatState
 
@@ -454,6 +461,15 @@ def _persist_figure_images(
             out_path = figures_dir / f"page{page:04d}-fig{n:02d}.jpg"
 
         if out_path.is_file():
+            data["image_path"] = str(out_path.resolve())
+            updated_any = True
+            continue
+
+        # If MinerU API already extracted the image, copy it to figures_dir
+        existing_img = data.get("image_path", "")
+        if existing_img and Path(existing_img).is_file():
+            import shutil as _shutil
+            _shutil.copy2(existing_img, out_path)
             data["image_path"] = str(out_path.resolve())
             updated_any = True
             continue
@@ -887,6 +903,105 @@ def _read_txt_file(path: Path) -> str:
         return path.read_text(encoding="utf-8", errors="ignore")
 
 
+def _use_mineru_api_mode() -> str:
+    """Determine MinerU API mode: 'precision', 'lightweight', or '' (disabled).
+
+    Requires --mineru-api CLI flag (sets KNOWMAT_USE_MINERU_API=1) to activate.
+    Without it, always returns '' (local PaddleOCR).
+    """
+    if not _env_truthy("KNOWMAT_USE_MINERU_API"):
+        return ""
+    if os.getenv("MINERU_API_KEY", "").strip():
+        return "precision"
+    if _env_truthy("MINERU_USE_LIGHTWEIGHT"):
+        return "lightweight"
+    return ""
+
+
+def _extract_pdf_with_mineru_api(
+    pdf_path: str,
+    output_dir: str,
+    save_intermediate: bool = True,
+    page_indices: Optional[List[int]] = None,
+) -> Tuple[str, Dict[str, Any], List[Dict[str, Any]]]:
+    """Extract PDF content via MinerU cloud API.
+
+    Produces the same (extracted_text, metadata, ocr_items) triple as
+    _extract_pdf_with_paddleocrvl() so downstream code is unaffected.
+    """
+    api_key = os.getenv("MINERU_API_KEY", "").strip()
+    base_url = os.getenv("MINERU_API_BASE_URL", "https://mineru.net").strip()
+    model_version = os.getenv("MINERU_MODEL_VERSION", "vlm").strip()
+    timeout = _env_float("MINERU_API_TIMEOUT_SEC", 600.0)
+    language = os.getenv("MINERU_LANGUAGE", "en").strip()
+
+    pdf = Path(pdf_path)
+    out_dir = Path(output_dir)
+    page_ranges = _pages_range_from_indices(page_indices)
+
+    mode = _use_mineru_api_mode()
+
+    if mode == "lightweight":
+        client = MineruLightweightClient(base_url)
+        markdown_text = client.upload_and_parse(pdf, page_range=page_ranges)
+        extracted_text, metadata, ocr_items = convert_lightweight_md_to_knowmat(markdown_text, pdf_path)
+        return extracted_text, metadata, ocr_items
+
+    client = MineruPrecisionClient(api_key, base_url)
+    task_result = client.upload_and_parse(
+        pdf,
+        model_version=model_version,
+        is_ocr=True,
+        enable_formula=True,
+        enable_table=True,
+        language=language,
+        page_ranges=page_ranges,
+    )
+
+    zip_url = task_result.get("full_zip_url", "")
+    if not zip_url:
+        raise MineruAPIError("MinerU task completed but no full_zip_url in response")
+
+    mineru_raw_dir = out_dir / "mineru_raw" if save_intermediate else Path(tempfile.mkdtemp())
+    extracted_dir = client.download_and_extract_zip(zip_url, mineru_raw_dir)
+
+    content_list: List[Dict[str, Any]] = []
+    full_md = ""
+    # MinerU ZIP files are named <uuid>_content_list.json, not just content_list.json
+    cl_candidates = sorted(extracted_dir.glob("*_content_list.json"))
+    # Exclude v2 format
+    cl_candidates = [f for f in cl_candidates if "_content_list_v2" not in f.name]
+    if not cl_candidates:
+        cl_candidates = list(extracted_dir.rglob("*content_list.json"))
+        cl_candidates = [f for f in cl_candidates if "_content_list_v2" not in f.name]
+    if cl_candidates:
+        cl_path = cl_candidates[0]
+        content_list = json.loads(cl_path.read_text("utf-8"))
+        logger.info("[MinerU API] Loaded content_list from %s (%d items)", cl_path.name, len(content_list))
+
+    md_path = extracted_dir / "full.md"
+    if md_path.is_file():
+        full_md = md_path.read_text("utf-8")
+    elif not full_md:
+        for md in extracted_dir.rglob("*.md"):
+            full_md = md.read_text("utf-8")
+            break
+
+    figures_dest = out_dir / "_mineru_images"
+    figures_dest.mkdir(parents=True, exist_ok=True)
+    extracted_text, metadata, ocr_items = convert_mineru_to_knowmat(
+        content_list, full_md, pdf_path, extracted_dir, page_indices, figures_dest
+    )
+
+    metadata["mineru_task_id"] = task_result.get("task_id", "")
+    metadata["mineru_model_version"] = model_version
+
+    if not save_intermediate and mineru_raw_dir != out_dir / "mineru_raw":
+        shutil.rmtree(mineru_raw_dir, ignore_errors=True)
+
+    return extracted_text, metadata, ocr_items
+
+
 def _finalize_pdf_parse(
     source_path: Path,
     parse_output_dir: Path,
@@ -1079,14 +1194,26 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
     skip_chem = _env_truthy("KNOWMAT_SKIP_CHEM_REOCR")
     pages_key = pages_key_for_cache(selected_pages, total_pages)
     digest = md5_file_digest(source_path)
-    sig = cache_signature_key(
-        digest,
-        render_dpi=render_dpi,
-        vl_version=vl_version,
-        pages_key=pages_key,
-        skip_ppstructure=skip_pp,
-        skip_chem_reocr=skip_chem,
-    )
+    mineru_mode = _use_mineru_api_mode()
+    if mineru_mode:
+        mineru_model = os.getenv("MINERU_MODEL_VERSION", "vlm").strip()
+        sig = cache_signature_key(
+            digest,
+            render_dpi=0,
+            vl_version=f"mineru_{mineru_mode}_{mineru_model}",
+            pages_key=pages_key,
+            skip_ppstructure=True,
+            skip_chem_reocr=True,
+        )
+    else:
+        sig = cache_signature_key(
+            digest,
+            render_dpi=render_dpi,
+            vl_version=vl_version,
+            pages_key=pages_key,
+            skip_ppstructure=skip_pp,
+            skip_chem_reocr=skip_chem,
+        )
     cache_bucket = ocr_cache_bucket(Path(output_dir), sig)
     skip_cache_read = bool(state.get("ocr_skip_cached", False)) or _env_truthy(
         "KNOWMAT_OCR_SKIP_CACHED"
@@ -1131,13 +1258,21 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
             )
 
     try:
-        extracted_text, metadata, _ocr_items = _extract_pdf_with_paddleocrvl(
-            str(source_path),
-            str(parse_output_dir),
-            model_dir,
-            save_intermediate=save_intermediate,
-            page_indices=selected_pages,
-        )
+        if mineru_mode:
+            extracted_text, metadata, _ocr_items = _extract_pdf_with_mineru_api(
+                str(source_path),
+                str(parse_output_dir),
+                save_intermediate=save_intermediate,
+                page_indices=selected_pages,
+            )
+        else:
+            extracted_text, metadata, _ocr_items = _extract_pdf_with_paddleocrvl(
+                str(source_path),
+                str(parse_output_dir),
+                model_dir,
+                save_intermediate=save_intermediate,
+                page_indices=selected_pages,
+            )
         figures_dir = cache_bucket / "figures"
         _ocr_items = _persist_figure_images(
             _ocr_items,
@@ -1168,5 +1303,8 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
             except OSError as exc:
                 logger.warning("Could not write OCR cache to %s: %s", cache_bucket, exc)
         return result
+    except MineruAPIError as exc:
+        raise RuntimeError(f"Failed to parse PDF with MinerU API: {str(exc)}") from exc
     except Exception as exc:
-        raise RuntimeError(f"Failed to parse PDF with PaddleOCR-VL: {str(exc)}") from exc
+        backend_name = "MinerU API" if mineru_mode else "PaddleOCR-VL"
+        raise RuntimeError(f"Failed to parse PDF with {backend_name}: {str(exc)}") from exc
