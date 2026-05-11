@@ -163,6 +163,9 @@ python -m knowmat --help
 | `MINERU_MODEL_VERSION` | No | `vlm` | MinerU model: `vlm` or `doclayout` |
 | `MINERU_API_TIMEOUT_SEC` | No | `600` | MinerU polling timeout (seconds) |
 | `MINERU_LANGUAGE` | No | `en` | Document language for MinerU |
+| `PADDLEOCR_API_TOKEN` | No | - | PaddleOCR cloud API token (enables `--paddleocr-api`) |
+| `PADDLEOCR_API_URL` | No | `https://paddleocr.aistudio-app.com/api/v2/ocr/jobs` | PaddleOCR API endpoint |
+| `PADDLEOCR_API_TIMEOUT_SEC` | No | `600` | PaddleOCR polling timeout (seconds) |
 
 ### OCR Tuning (Optional)
 
@@ -247,6 +250,42 @@ The `--mineru-api` flag activates MinerU API mode. Without this flag, the local 
 
 **Note:** MinerU API requires network access and has usage limits based on your API plan.
 
+### PaddleOCR Cloud API Mode
+
+KnowMat also supports using the [PaddleOCR cloud API](https://paddleocr.aistudio-app.com) as an OCR backend. This provides the same PaddleOCR-VL + PP-StructureV3 pipeline as the local mode, but runs on cloud infrastructure (no local GPU needed).
+
+**Setup:**
+
+Add your PaddleOCR API token to `.env`:
+
+```bash
+PADDLEOCR_API_TOKEN="your_paddleocr_api_token"
+PADDLEOCR_API_URL=https://paddleocr.aistudio-app.com/api/v2/ocr/jobs
+PADDLEOCR_API_TIMEOUT_SEC=600
+```
+
+**Usage:**
+
+```bash
+# OCR only with PaddleOCR cloud API
+python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api
+
+# Full pipeline with PaddleOCR cloud API
+python -m knowmat --input-folder path/to/papers --paddleocr-api
+
+# Force re-run (ignore cache)
+python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api --skip-cached-ocr
+```
+
+**PP-StructureV3 formula refinement for MinerU:**
+
+When both `PADDLEOCR_API_TOKEN` and `MINERU_API_KEY` are configured, using `--mineru-api` will automatically apply PP-StructureV3 formula/table refinement on MinerU results:
+
+```bash
+# MinerU primary OCR + PP-StructureV3 formula refinement
+python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api
+```
+
 ### Advanced Options
 
 ```bash
@@ -269,6 +308,7 @@ python -m knowmat \
 | `--max-runs` | Max extraction/evaluation rounds | `1` |
 | `--workers` | Concurrent file processing | `1` |
 | `--mineru-api` | Use MinerU cloud API for OCR | `False` |
+| `--paddleocr-api` | Use PaddleOCR cloud API for OCR | `False` |
 | `--skip-cached-ocr` | Ignore OCR cache, force re-inference | `False` |
 | `--force-rerun` | Force re-OCR and re-extraction | `False` |
 | `--enable-property-standardization` | Enable property name standardization | `False` |

@@ -163,6 +163,9 @@ python -m knowmat --help
 | `MINERU_MODEL_VERSION` | 否 | `vlm` | MinerU 模型：`vlm` 或 `doclayout` |
 | `MINERU_API_TIMEOUT_SEC` | 否 | `600` | MinerU 轮询超时时间（秒） |
 | `MINERU_LANGUAGE` | 否 | `en` | MinerU 文档语言 |
+| `PADDLEOCR_API_TOKEN` | 否 | - | PaddleOCR 云端 API Token（启用 `--paddleocr-api`） |
+| `PADDLEOCR_API_URL` | 否 | `https://paddleocr.aistudio-app.com/api/v2/ocr/jobs` | PaddleOCR API 地址 |
+| `PADDLEOCR_API_TIMEOUT_SEC` | 否 | `600` | PaddleOCR 轮询超时时间（秒） |
 
 ### OCR 调优（可选）
 
@@ -245,6 +248,42 @@ python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api --skip-c
 
 **注意：** MinerU API 需要网络连接，用量受 API 套餐限制。
 
+### PaddleOCR 云端 API 模式
+
+KnowMat 还支持使用 [PaddleOCR 云端 API](https://paddleocr.aistudio-app.com) 作为 OCR 后端。提供与本地模式相同的 PaddleOCR-VL + PP-StructureV3 流水线，但运行在云端（本地无需 GPU）。
+
+**配置：**
+
+在 `.env` 中添加 PaddleOCR API Token：
+
+```bash
+PADDLEOCR_API_TOKEN="your_paddleocr_api_token"
+PADDLEOCR_API_URL=https://paddleocr.aistudio-app.com/api/v2/ocr/jobs
+PADDLEOCR_API_TIMEOUT_SEC=600
+```
+
+**使用方法：**
+
+```bash
+# 仅 OCR（使用 PaddleOCR 云端 API）
+python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api
+
+# 全流程（PaddleOCR 云端 API + LLM 抽取）
+python -m knowmat --input-folder path/to/papers --paddleocr-api
+
+# 强制重新跑（忽略缓存）
+python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api --skip-cached-ocr
+```
+
+**PP-StructureV3 公式精修 + MinerU：**
+
+当同时配置了 `PADDLEOCR_API_TOKEN` 和 `MINERU_API_KEY` 时，使用 `--mineru-api` 会自动对 MinerU 结果进行 PP-StructureV3 公式/表格精修：
+
+```bash
+# MinerU 主 OCR + PP-StructureV3 公式精修
+python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api
+```
+
 ### 进阶参数
 
 ```bash
@@ -267,6 +306,7 @@ python -m knowmat \
 | `--max-runs` | 最大抽取/评估轮数 | `1` |
 | `--workers` | 并发文件处理数 | `1` |
 | `--mineru-api` | 使用 MinerU 云端 API 进行 OCR | `False` |
+| `--paddleocr-api` | 使用 PaddleOCR 云端 API 进行 OCR | `False` |
 | `--skip-cached-ocr` | 忽略 OCR 缓存，强制重新推理 | `False` |
 | `--force-rerun` | 强制重新 OCR 并重新抽取 | `False` |
 | `--enable-property-standardization` | 启用属性名标准化 | `False` |

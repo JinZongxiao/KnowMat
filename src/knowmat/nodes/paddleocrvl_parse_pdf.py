@@ -72,6 +72,12 @@ from knowmat.pdf.mineru_result_converter import (
     convert_lightweight_md_to_knowmat,
     convert_mineru_to_knowmat,
 )
+from knowmat.pdf.paddleocr_api_client import PaddleOCRAPIClient, PaddleOCRAPIError
+from knowmat.pdf.paddleocr_api_result_converter import (
+    convert_paddleocr_api_to_knowmat,
+    extract_formulas_per_page,
+    extract_tables_per_page,
+)
 from knowmat.app_config import settings
 from knowmat.states import KnowMatState
 
@@ -1002,6 +1008,154 @@ def _extract_pdf_with_mineru_api(
     return extracted_text, metadata, ocr_items
 
 
+def _use_paddleocr_api_mode() -> bool:
+    """Check if PaddleOCR cloud API mode is enabled via --paddleocr-api flag."""
+    return _env_truthy("KNOWMAT_USE_PADDLEOCR_API")
+
+
+def _extract_pdf_with_paddleocr_api(
+    pdf_path: str,
+    output_dir: str,
+    save_intermediate: bool = True,
+    page_indices: Optional[List[int]] = None,
+) -> Tuple[str, Dict[str, Any], List[Dict[str, Any]]]:
+    """Extract PDF content via PaddleOCR cloud API (VL-1.5 + PP-StructureV3).
+
+    Produces the same (extracted_text, metadata, ocr_items) triple as other backends.
+    """
+    token = os.getenv("PADDLEOCR_API_TOKEN", "").strip()
+    base_url = os.getenv("PADDLEOCR_API_URL", "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs").strip()
+    timeout = _env_float("PADDLEOCR_API_TIMEOUT_SEC", 600.0)
+
+    pdf = Path(pdf_path)
+    out_dir = Path(output_dir)
+
+    client = PaddleOCRAPIClient(token, base_url)
+
+    # Step 1: Run PaddleOCR-VL-1.5 for primary OCR
+    logger.info("[PaddleOCR API] Running PaddleOCR-VL-1.5 on %s...", pdf.name)
+    job_result = client.upload_and_parse(pdf, model="PaddleOCR-VL-1.5", timeout_sec=timeout)
+
+    jsonl_url = job_result.get("resultUrl", {}).get("jsonUrl", "")
+    if not jsonl_url:
+        raise PaddleOCRAPIError("PaddleOCR job done but no jsonUrl in resultUrl")
+
+    pages_data = client.download_jsonl(jsonl_url)
+
+    images_dir = out_dir / "_paddleocr_images"
+    images_dir.mkdir(parents=True, exist_ok=True)
+
+    extracted_text, metadata, ocr_items = convert_paddleocr_api_to_knowmat(
+        pages_data, pdf_path, images_dir
+    )
+
+    # Step 2: Run PP-StructureV3 for formula/table refinement
+    ocr_items, pp_report = _refine_with_ppstructurev3_api(pdf_path, ocr_items, output_dir)
+    metadata["ocr_quality"].update(pp_report)
+
+    metadata["paddleocr_api_model"] = "PaddleOCR-VL-1.5"
+    return extracted_text, metadata, ocr_items
+
+
+def _refine_with_ppstructurev3_api(
+    pdf_path: str,
+    ocr_items: List[Dict[str, Any]],
+    output_dir: str,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """Run PP-StructureV3 API on the PDF and refine formula/table items in ocr_items.
+
+    Matches formulas and tables by page number and reading order index.
+    Returns (updated_ocr_items, pp_report_dict).
+    """
+    token = os.getenv("PADDLEOCR_API_TOKEN", "").strip()
+    if not token:
+        return ocr_items, {
+            "ppstructure_status": "skipped",
+            "ppstructure_detail": "PADDLEOCR_API_TOKEN not set",
+            "ppstructure_replacements": 0,
+        }
+
+    base_url = os.getenv("PADDLEOCR_API_URL", "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs").strip()
+    timeout = _env_float("PADDLEOCR_API_TIMEOUT_SEC", 600.0)
+    pdf = Path(pdf_path)
+
+    client = PaddleOCRAPIClient(token, base_url)
+
+    try:
+        logger.info("[PP-StructureV3 API] Running formula/table refinement on %s...", pdf.name)
+        job_result = client.upload_and_parse(pdf, model="PP-StructureV3", timeout_sec=timeout)
+
+        jsonl_url = job_result.get("resultUrl", {}).get("jsonUrl", "")
+        if not jsonl_url:
+            logger.warning("[PP-StructureV3 API] No jsonUrl in result, skipping refinement")
+            return ocr_items, {
+                "ppstructure_status": "failed",
+                "ppstructure_detail": "no jsonUrl returned",
+                "ppstructure_replacements": 0,
+            }
+
+        pp_pages_data = client.download_jsonl(jsonl_url)
+    except (PaddleOCRAPIError, Exception) as exc:
+        logger.warning("[PP-StructureV3 API] Refinement failed: %s", exc)
+        return ocr_items, {
+            "ppstructure_status": "failed",
+            "ppstructure_detail": str(exc)[:200],
+            "ppstructure_replacements": 0,
+        }
+
+    # Extract formulas and tables from PP-StructureV3 result
+    pp_formulas = extract_formulas_per_page(pp_pages_data)
+    pp_tables = extract_tables_per_page(pp_pages_data)
+
+    replacements = 0
+
+    # Group formula ocr_items by page
+    formula_items_by_page: Dict[int, List[int]] = {}
+    table_items_by_page: Dict[int, List[int]] = {}
+    for idx, item in enumerate(ocr_items):
+        page = item.get("page", 0)
+        if item.get("typer") == "formula":
+            formula_items_by_page.setdefault(page, []).append(idx)
+        elif item.get("typer") == "table":
+            table_items_by_page.setdefault(page, []).append(idx)
+
+    # Replace formulas by page + order matching
+    for page, pp_formula_list in pp_formulas.items():
+        item_indices = formula_items_by_page.get(page, [])
+        for i, latex in enumerate(pp_formula_list):
+            if i < len(item_indices):
+                idx = item_indices[i]
+                old_item = ocr_items[idx]
+                old_data = old_item.get("data", {})
+                old_data["text"] = latex
+                old_data["latex"] = latex
+                old_item["data"] = old_data
+                old_item["reocr_source"] = "ppstructurev3_api_replace"
+                ocr_items[idx] = old_item
+                replacements += 1
+
+    # Replace tables by page + order matching
+    for page, pp_table_list in pp_tables.items():
+        item_indices = table_items_by_page.get(page, [])
+        for i, table_md in enumerate(pp_table_list):
+            if i < len(item_indices):
+                idx = item_indices[i]
+                old_item = ocr_items[idx]
+                old_data = old_item.get("data", {})
+                old_data["text"] = table_md
+                old_item["data"] = old_data
+                old_item["reocr_source"] = "ppstructurev3_api_replace"
+                ocr_items[idx] = old_item
+                replacements += 1
+
+    logger.info("[PP-StructureV3 API] Refinement done: %d replacements", replacements)
+    return ocr_items, {
+        "ppstructure_status": "applied_api",
+        "ppstructure_detail": f"PP-StructureV3 API: {replacements} replacements",
+        "ppstructure_replacements": replacements,
+    }
+
+
 def _finalize_pdf_parse(
     source_path: Path,
     parse_output_dir: Path,
@@ -1194,15 +1348,26 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
     skip_chem = _env_truthy("KNOWMAT_SKIP_CHEM_REOCR")
     pages_key = pages_key_for_cache(selected_pages, total_pages)
     digest = md5_file_digest(source_path)
+    paddleocr_api_mode = _use_paddleocr_api_mode()
     mineru_mode = _use_mineru_api_mode()
-    if mineru_mode:
-        mineru_model = os.getenv("MINERU_MODEL_VERSION", "vlm").strip()
+    if paddleocr_api_mode:
         sig = cache_signature_key(
             digest,
             render_dpi=0,
-            vl_version=f"mineru_{mineru_mode}_{mineru_model}",
+            vl_version="paddleocr_api_vl15",
             pages_key=pages_key,
-            skip_ppstructure=True,
+            skip_ppstructure=False,
+            skip_chem_reocr=True,
+        )
+    elif mineru_mode:
+        mineru_model = os.getenv("MINERU_MODEL_VERSION", "vlm").strip()
+        pp_token = os.getenv("PADDLEOCR_API_TOKEN", "").strip()
+        sig = cache_signature_key(
+            digest,
+            render_dpi=0,
+            vl_version=f"mineru_{mineru_mode}_{mineru_model}" + ("_ppv3" if pp_token else ""),
+            pages_key=pages_key,
+            skip_ppstructure=not bool(pp_token),
             skip_chem_reocr=True,
         )
     else:
@@ -1258,13 +1423,26 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
             )
 
     try:
-        if mineru_mode:
+        if paddleocr_api_mode:
+            extracted_text, metadata, _ocr_items = _extract_pdf_with_paddleocr_api(
+                str(source_path),
+                str(parse_output_dir),
+                save_intermediate=save_intermediate,
+                page_indices=selected_pages,
+            )
+        elif mineru_mode:
             extracted_text, metadata, _ocr_items = _extract_pdf_with_mineru_api(
                 str(source_path),
                 str(parse_output_dir),
                 save_intermediate=save_intermediate,
                 page_indices=selected_pages,
             )
+            # Apply PP-StructureV3 API refinement if token available
+            if os.getenv("PADDLEOCR_API_TOKEN", "").strip():
+                _ocr_items, pp_report = _refine_with_ppstructurev3_api(
+                    str(source_path), _ocr_items, str(parse_output_dir)
+                )
+                metadata.setdefault("ocr_quality", {}).update(pp_report)
         else:
             extracted_text, metadata, _ocr_items = _extract_pdf_with_paddleocrvl(
                 str(source_path),
@@ -1305,6 +1483,13 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
         return result
     except MineruAPIError as exc:
         raise RuntimeError(f"Failed to parse PDF with MinerU API: {str(exc)}") from exc
+    except PaddleOCRAPIError as exc:
+        raise RuntimeError(f"Failed to parse PDF with PaddleOCR API: {str(exc)}") from exc
     except Exception as exc:
-        backend_name = "MinerU API" if mineru_mode else "PaddleOCR-VL"
+        if paddleocr_api_mode:
+            backend_name = "PaddleOCR API"
+        elif mineru_mode:
+            backend_name = "MinerU API"
+        else:
+            backend_name = "PaddleOCR-VL"
         raise RuntimeError(f"Failed to parse PDF with {backend_name}: {str(exc)}") from exc

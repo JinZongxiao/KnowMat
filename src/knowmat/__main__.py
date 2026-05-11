@@ -121,6 +121,11 @@ def main(argv: list[str] | None = None) -> None:
         help="Use MinerU cloud API for OCR instead of local PaddleOCR inference. Requires MINERU_API_KEY in .env.",
     )
     parser.add_argument(
+        "--paddleocr-api",
+        action="store_true",
+        help="Use PaddleOCR cloud API for OCR (PaddleOCR-VL-1.5 + PP-StructureV3). Requires PADDLEOCR_API_TOKEN in .env.",
+    )
+    parser.add_argument(
         "--clear-ocr-cache",
         action="store_true",
         help="Remove all _ocr_cache directories under the input folder before processing.",
@@ -136,6 +141,11 @@ def main(argv: list[str] | None = None) -> None:
             print("Error: --mineru-api requires MINERU_API_KEY to be set in .env or environment.")
             return
         os.environ["KNOWMAT_USE_MINERU_API"] = "1"
+    if args.paddleocr_api:
+        if not os.getenv("PADDLEOCR_API_TOKEN", "").strip():
+            print("Error: --paddleocr-api requires PADDLEOCR_API_TOKEN to be set in .env or environment.")
+            return
+        os.environ["KNOWMAT_USE_PADDLEOCR_API"] = "1"
     _ensure_utf8_output()
     
     # 优先级：CLI (--input-folder / --pdf-folder) > 环境变量 KNOWMAT2_INPUT_DIR > 默认 "data/raw"
