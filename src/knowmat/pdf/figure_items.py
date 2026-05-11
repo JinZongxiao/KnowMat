@@ -244,3 +244,34 @@ def normalize_figure_ocr_items(
 
     _merge_duplicate_figure_items(ocr_items)
     return ocr_items
+
+
+def promote_caption_paragraphs(ocr_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Convert paragraph items that contain figure captions to image items.
+
+    API-mode OCR (PaddleOCR/MinerU) stores figure captions as separate paragraph
+    items.  This function promotes them to ``typer: "image"`` items so that
+    ``normalize_figure_ocr_items`` can merge them with path-bearing image items.
+    """
+    import re
+    _div_tag_re = re.compile(r"</?div[^>]*>", re.IGNORECASE)
+
+    for item in ocr_items:
+        if not isinstance(item, dict) or item.get("typer") != "paragraph":
+            continue
+        text = str(item.get("text") or "").strip()
+        if not text:
+            continue
+        # Strip <div> wrappers that PaddleOCR API adds around captions
+        clean_text = _div_tag_re.sub("", text).strip()
+        parsed = extract_figure_caption(clean_text)
+        if parsed and parsed.get("figure_num"):
+            item["typer"] = "image"
+            item["data"] = {
+                "image_path": "",
+                "caption": parsed.get("caption") or clean_text,
+                "figure_num": parsed["figure_num"],
+                "caption_type": parsed.get("figure_type", ""),
+            }
+            item["block_label"] = "figure"
+    return ocr_items

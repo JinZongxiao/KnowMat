@@ -12,6 +12,31 @@
   },
   {
     "typer": "paragraph",
+    "text": "To cite this article: Yixi Shen and Douglas E Spearot 2021 Modelling Simul. Mater. Sci. Eng. 29 085017",
+    "page": 1
+  },
+  {
+    "typer": "paragraph",
+    "text": "View the  $ \\underline{\\text{article online}} $ for updates and enhancements.",
+    "page": 1
+  },
+  {
+    "typer": "paragraph",
+    "text": "You may also like",
+    "page": 1,
+    "block_label": "title"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_image_box_73_1301_445_1581.jpg",
+      "caption": ""
+    },
+    "page": 1,
+    "block_label": "figure"
+  },
+  {
+    "typer": "paragraph",
     "text": "- On the real-time atomistic deformation of nano twinned CrCoFeNi high entropy alloy Shaohua Yan, Qing H Qin and Zheng Zhong",
     "page": 1
   },
@@ -43,6 +68,16 @@
   },
   {
     "typer": "paragraph",
+    "text": "Bringing together innovative digital publishing with leading authors from the global scientific community.",
+    "page": 1
+  },
+  {
+    "typer": "paragraph",
+    "text": "Start exploring the collection-download the first chapter of every title for free.",
+    "page": 1
+  },
+  {
+    "typer": "paragraph",
     "text": "Modelling Simul. Mater. Sci. Eng. 29 (2021) 085017 (24pp)",
     "page": 2
   },
@@ -54,9 +89,49 @@
   },
   {
     "typer": "paragraph",
+    "text": "Yixi Shen $ ^{1} $ $ ^{ID} $ and Douglas E Spearot $ ^{1,2,*} $ $ ^{ID} $",
+    "page": 2
+  },
+  {
+    "typer": "paragraph",
+    "text": "$ ^{1} $ Department of Mechanical & Aerospace Engineering, University of Florida, Gainesville, FL, United States of America",
+    "page": 2
+  },
+  {
+    "typer": "paragraph",
+    "text": "$ ^{2} $ Department of Material Science & Engineering, University of Florida, Gainesville, FL, United States of America",
+    "page": 2
+  },
+  {
+    "typer": "paragraph",
+    "text": "E-mail: dspearot@ufl.edu",
+    "page": 2
+  },
+  {
+    "typer": "paragraph",
+    "text": "Received 25 August 2021, revised 21 October 2021",
+    "page": 2
+  },
+  {
+    "typer": "paragraph",
+    "text": "Accepted for publication 26 October 2021",
+    "page": 2
+  },
+  {
+    "typer": "paragraph",
+    "text": "Published 15 November 2021",
+    "page": 2
+  },
+  {
+    "typer": "paragraph",
     "text": "Abstract",
     "page": 2,
     "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "Dislocations in high entropy alloys (HEAs) are wavy and have natural pinning points due to the variable chemical and energetic landscape surrounding the dislocation core. This can influence the critical shear stress necessary to initiate dislocation motion and the details associated with sustained dislocation glide. The objective of this work is to determine the relationship between Schmid shear stress and dislocation velocity in single phase FCC FeNiCrCoCu HEAs using molecular dynamics simulations, with comparisons made to dislocation motion in homogeneous Ni and Cu. Simulations are performed for four different dislocation character angles: 0° (screw), 30°, 60° and 90° (edge). Several key differences are reported, compared to what is previously known about dislocation motion in homogeneous FCC metals. For example, the drag coefficient B in the phonon damping regime for HEAs has a nonlinear dependence on temperature, whereas this dependence is linear in Ni. Mobility relationships between different types of dislocations common in homogeneous FCC metals, such as the velocity of screw and 60° dislocations being lower than edge and 30° dislocations at the same shear stress, do not necessarily hold in HEAs. Dislocation waviness is measured and is found to correlate with the ability of dislocations to glide under an applied shear stress, including the temperature dependence of the drag coefficient B. These results confirm that the influence of HEA chemical complexity on dislocation motion is important and this data can be used to guide development of analytical or empirical models for dislocation mobility in HEAs.",
+    "page": 2
   },
   {
     "typer": "paragraph",
@@ -76,6 +151,21 @@
   },
   {
     "typer": "paragraph",
+    "text": "Conventional metallic alloys are composed of a single dominant element and other alloying elements are added in minor concentrations to optimize material properties. For example, in stainless steel, iron is the principal element and other elements like chromium and nickel are added in small concentrations to modify strength and corrosion behavior. In recent years, a new alloy system named high-entropy alloys (HEAs) has been introduced. Two commonly used definitions of HEAs are a composition-based definition and an entropy-based definition. Under the composition-based definition, HEAs are alloys having 5 or more principal elements in equiatomic or near-equiatomic composition and each principal element can have a concentration between 5 and 35 at.\\% [1–3]. HEAs may also contain elements in smaller concentrations to improve properties. By the entropy-based definition, HEAs are alloys having a configurational entropy S larger than a certain magnitude of the gas constant R. Some have defined alloys with  $ S \\geq 1.61R $ as HEAs [4], while others have included quaternary equimolar alloys with  $ S \\geq 1.39R $ as HEAs [5, 6]. Thus, a compromised entropy-based definition was proposed where alloys with  $ S \\geq 1.5R $ [7] are considered as HEAs. Due to different composition and processing, HEAs may solidify into a single-phase solid solution or include secondary intermetallic phases [3]. Thus, some authors classify single-phase HEAs as a subset of complex concentrated alloys [8–10]. HEAs can exhibit excellent high-temperature stability, mechanical properties, and resistance against oxidation and corrosion; thus, they are promising materials for many engineering applications [11]. For example, the equiatomic HEA CrMnFeCoNi has exceptional damage tolerance, tensile strength, and fracture resistance, which increases with decreasing temperature [12].",
+    "page": 3
+  },
+  {
+    "typer": "paragraph",
+    "text": "Like pure metals or conventional metallic alloys, the key plastic deformation mode in HEAs is dislocation slip. This process can be broken into three stages. First, a shear stress must act on the slip plane in the direction of the Burgers vector for the dislocation (Schmid shear stress [13–17]) with sufficient magnitude to initiate motion. In pure FCC metals, the critical shear stress must overcome the lattice friction stress, which is usually on the order of 10 MPa. However, in HEAs, a much larger critical shear stress is necessary to initiate motion because the variable energetic landscape surrounding the dislocation creates waviness along the dislocation core and natural pinning points. This waviness was shown for the FCC FeNi-CrCoCu HEA by Pasianot and Farkas [18] and also observed in refractory multiprincipal element alloys by Wang et al [19] after nanoindentation. Atomistic simulations of the FCC HEA Co₃₀Fe₁₆.₆₇Ni₃₆.₆₇Ti₁₆.₆₇ performed by Rao et al [20] showed that the stacking fault energy (SFE) fluctuated along the slip plane, depending on the local composition, leading to dislocation core waviness. In addition, the stacking fault width along the dislocation for both screw and edge  $ \\frac{a}{2}(110) $ dislocations showed variability, similar to experimental and simulation results in the Cantor alloy CrMnFeCoNi [21, 22].",
+    "page": 3
+  },
+  {
+    "typer": "paragraph",
+    "text": "Second, if the Schmid shear stress is sufficient for sustained motion of an isolated dislocation, it will glide with an average velocity proportional to the magnitude of the Schmid shear stress. Several theoretical, experimental and computational studies have provided dislocation mobility laws that relate dislocation velocity to the Schmid shear stress. Empirical models have",
+    "page": 3
+  },
+  {
+    "typer": "paragraph",
     "text": "been proposed [23–25] with the form,",
     "page": 4
   },
@@ -91,6 +181,26 @@
   },
   {
     "typer": "paragraph",
+    "text": "where B is the drag coefficient, b is the magnitude of the Burgers vector of the dislocation,  $ \\tau $ is the Schmid shear stress, and  $ \\nu $ is the dislocation velocity. The drag coefficient B accounts for the resistance that lattice phonons provide to dislocation motion (known as the phonon damping mechanism) [26]. Under low Schmid stress, both experiments and molecular dynamics simulations [13, 14] have found that the mobility law is linear and dependent on temperature,  $ B(T) $. For example, Olmsted et al showed via MD simulation that the drag coefficient B of edge and screw dislocations is linearly proportional to temperature in the phonon damping regime in pure metals [13]. This agrees with the Leibfried model [27], which is commonly used as an empirical function to extract dislocation mobility at low Schmid shear stress from discrete lattice simulations [13–15]. In addition, Olmsted et al reported that for conventional Al–Mg alloys (2.5 and 5 at.\\% Mg) deviation of velocity from linearity in  $ \\tau/T $ is observed only at the lowest temperature evaluated (300 K); this was likely due to pinning/depinning events during dislocation motion. The variable energetic environment in HEAs, which leads to wavy dislocation cores, is an additional factor that can cause disruptions to continuous dislocation motion.",
+    "page": 4
+  },
+  {
+    "typer": "paragraph",
+    "text": "Third, at high Schmid shear stresses, which may be characteristic of high strain rate or shock loading applications, the relationship between dislocation velocity and Schmid shear stress becomes nonlinear. In this regime, the drag coefficient is proposed to have the form  $ B(T, \\nu) $ accounting for the radiation of waves produced by dislocation motion (known as the radiative damping mechanism) [13, 14, 17]. Eshelby [28] proposed that this nonlinear damping should be proportional to  $ (\\nu - \\nu_0)^{1.5} $ for a screw dislocation, where  $ \\nu $ is the dislocation velocity and  $ \\nu_0 $ is a constant. Recently, Dang et al proposed that the power on this proportionality should depend on the character angle of the dislocation and non-Schmid components of the stress state acting on the slip system, which affect dislocation core structure [29, 30].",
+    "page": 4
+  },
+  {
+    "typer": "paragraph",
+    "text": "To obtain a complete view of yield strength and strain hardening in HEAs, all three stages associated with dislocation motion must be understood. The critical shear stress necessary to initiate dislocation motion (stage 1) is a key component in mechanism-based models that aim to predict the yield strength of HEAs (cf [31, 32]). This is a challenging quantity to determine via atomistic simulations because many random environments must be sampled and it is not known how composition and dislocation line conformation collaboratively influence the critical shear stress for motion. For example, Xu et al defined a ‘local’ slip resistance in very thin atomistic models to isolate the chemical effect [33]. On the other hand, during sustained motion of a dislocation in a HEA, the dislocation experiences many random environments over its distance of travel, providing a route to compute average responses for the phonon drag coefficient, its temperature dependence, and the upper limit for phonon drag dominance. This information provides critical input for traditional plasticity models for plastic strain rate and strain hardening.",
+    "page": 4
+  },
+  {
+    "typer": "paragraph",
+    "text": "Thus, the objective of this work is to determine the relationship between Schmid shear stress and average dislocation velocity in single phase FCC FeNiCrCoCu HEAs using molecular dynamics simulations. First, for low Schmid shear stress, temperature dependence of the phonon drag coefficient B is studied at temperatures of 300, 500 and 700 K. Second, for a larger range of Schmid shear stresses, the average velocity of a dislocation is computed and related to the magnitude of the applied shear stress. These calculations are performed for dislocations with four different character angles. In addition, since Ni and Cu have the smallest and largest atom sizes, respectively, among the five elements in the FeNiCrCoCu HEA, the ratio of Ni and Cu are increased to 30 at.% while keeping the ratio for other elements equal.",
+    "page": 4
+  },
+  {
+    "typer": "paragraph",
     "text": "to explore the influence of chemical misfit on dislocation mobility. In both sets of simulations, results show a correlation between the mobility of a dislocation and its waviness. Ultimately, this computational work provides valuable understanding of the mobility of dislocations in HEAs, including how it is different than in homogeneous FCC metals, which could provide ideas for new HEA material design. Besides, this work provides data for use in dislocation-based material strength models [34–36] and mesoscale simulation methods, such as discrete dislocation dynamics (DDD) where the dislocation drag coefficient B is required as an input parameter. The presented understanding of dislocation mobility in linear and nonlinear regimes can improve the accuracy of these models and methods.",
     "page": 5
   },
@@ -99,6 +209,32 @@
     "text": "2. Atomistic simulation methodology",
     "page": 5,
     "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "Molecular dynamics (MD) simulations are used to examine the temperature dependence of the phonon drag coefficient in single phase FCC FeNiCrCoCu HEAs. Specifically, MD simulations are used to compute the average velocity of dislocations in single phase FCC FeNiCrCoCu HEAs with different concentrations: an equiatomic Fe₂₀Ni₂₀Cr₂₀Co₂₀Cu₂₀ HEA, a Ni-rich HEA Fe₁₇.₅Ni₃₀Cr₁₇.₅Co₁₇.₅Cu₁₇.₅ and a Cu-rich HEA Fe₁₇.₅Ni₁₇.₅Cr₁₇.₅Co₁₇.₅Cu₁₇.₅. All atomistic simulations are performed using the large-scale atomic/molecular massively parallel simulator (LAMMPS) [37], with results visualized by OVITO [38]. Dislocations are identified by the dislocation extraction algorithm (DXA) [39] in OVITO. Farkas and Caro [40] recently parameterized an embedded atom method (EAM) potential for this HEA, which can predict local lattice distortions. Local lattice distortions imply local strain in the lattice and the capability to accurately model these local distortions and strains is essential to this study. Stacking fault energies for individual elements were included during their fitting procedure.",
+    "page": 5
+  },
+  {
+    "typer": "paragraph",
+    "text": "Construction of the HEA model and the method to determine the energetically favorable lattice parameter for the HEA will be introduced in section 2.1. The method to build MD simulation models and insert a single dislocation is presented in section 2.2. The method to apply the loading condition to MD simulation is introduced in section 2.3. An empirical piece-wise model for dislocation mobility, that will be used to fit the simulations results, is presented in section 2.4. Chemical short range order (CSRO) plays an important role in dislocation motion in some HEAs, such as in CoFeNiTi [41] or NiCoCr [42]. A hybrid Monte Carlo/MD method is used to assess the extent of CSRO in the FeNiCrCoCu HEA. This CSRO analysis and validation of model size based on correlation length is presented in section 2.5.",
+    "page": 5
+  },
+  {
+    "typer": "paragraph",
+    "text": "2.1. Method to build the HEA models",
+    "page": 5,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "To build a random HEA sample, a large atomistic simulation cell is divided into a set of smaller cuboidal cells with size approximately 4 nm on each edge. Each small cell is populated with the five principal elements in the desired crystal structure and concentration, separately and randomly. Then this step is repeated for all small cells along X, Y and Z model axes to complete the large simulation cell, with size appropriate for the specific dislocation mechanism to be studied (section 2.2). This approach confirms that the local composition on the scale of the small simulation cell matches the global HEA composition.",
+    "page": 5
+  },
+  {
+    "typer": "paragraph",
+    "text": "The relationship between atomic potential energy and lattice parameter at 0 K is used to determine the appropriate lattice spacing and phases of all homogeneous and HEA models. Specifically, the dimensions of a cubic simulation cell are modified to explore lattice parameters from 3.3 to 4.4 Å for the FCC phase and 2.6 to 3.7 Å for the BCC phase in increments of 0.01 Å. The calculated lattice spacing for all homogeneous and HEA models are listed in",
+    "page": 5
   },
   {
     "typer": "paragraph",
@@ -122,17 +258,64 @@
     "block_label": "title"
   },
   {
+    "typer": "paragraph",
+    "text": "To study the mobility of dislocations with 0° (screw), 30°, 60° and 90° (edge) character angles with MD simulation, simulation cells are built with a single, initially straight dislocation using Volterra displacement fields, as shown in figure 1. Similar models have been used previously to study dislocation mobilities [14, 16, 17, 30, 46]. The slip system for the dislocation is [T01](111). The lattice is oriented so that the dislocation line is in the X direction, with glide in the Z direction; details are provided for each dislocation character angle in table 2. The boundaries in the Y direction are nonperiodic and fixed. The atoms in the top and bottom boundaries are not displaced using the Volterra displacement fields, instead, they are subjected to a linear displacement field specific to the type of dislocation studied [47]. This is important so that energy and stress calculations are invariant with respect to dislocation position during glide. The Y and Z lengths are sufficient so that image forces from the fixed surfaces and the periodic boundaries, respectively, are insignificant. After inserting the dislocation, energy minimization is performed using a nonlinear conjugate gradient method to resolve the dislocation conformation. Then, the system is brought to thermodynamic equilibrium at a chosen temperature using a Nosé–Hoover style thermostat and barostat [46]. The simulation cell is pre-stained in the Y direction via an iterative process to relieve the thermal expansion stress at a given temperature, while the thermal expansion stresses in X and Z directions are relieved by the barostat.",
+    "page": 6
+  },
+  {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_image_box_217_202_938_551.jpg",
-      "caption": ""
+      "caption": "Figure 1. Simulation cell used to study motion of  $ \\frac{1}{2} $ [101] dislocations. Periodic boundary conditions are applied along the X and Z directions.",
+      "figure_num": "1"
+    },
+    "page": 7,
+    "block_label": "figure"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_image_box_217_202_938_551.jpg",
+      "caption": "Figure 1. Simulation cell used to study motion of  $ \\frac{1}{2} $ [101] dislocations. Periodic boundary conditions are applied along the X and Z directions.",
+      "figure_num": "1"
     },
     "page": 7,
     "block_label": "figure"
   },
   {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 1. Simulation cell used to study motion of  $ \\frac{1}{2} $ [101] dislocations. Periodic boundary conditions are applied along the X and Z directions.</div>",
+    "text": "<div style=\"text-align: center;\">Table 2. Dislocation character angles, lattice orientations and approximate dimensions for each simulation model.</div>",
+    "page": 7
+  },
+  {
+    "typer": "paragraph",
+    "text": "<table border=1 style='margin: auto; word-wrap: break-word;'><tr><td style='text-align: center; word-wrap: break-word;'>$ \\theta(\\degree) $</td><td style='text-align: center; word-wrap: break-word;'>X</td><td style='text-align: center; word-wrap: break-word;'>Y</td><td style='text-align: center; word-wrap: break-word;'>Z</td><td style='text-align: center; word-wrap: break-word;'>L_{x}</td><td style='text-align: center; word-wrap: break-word;'>L_{y}</td><td style='text-align: center; word-wrap: break-word;'>L_{z}</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>0 (screw)</td><td style='text-align: center; word-wrap: break-word;'>[101]</td><td style='text-align: center; word-wrap: break-word;'>[111]</td><td style='text-align: center; word-wrap: break-word;'>[121]</td><td style='text-align: center; word-wrap: break-word;'>20 nm</td><td style='text-align: center; word-wrap: break-word;'>16 nm</td><td style='text-align: center; word-wrap: break-word;'>87 nm</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>30</td><td style='text-align: center; word-wrap: break-word;'>[112]</td><td style='text-align: center; word-wrap: break-word;'>[111]</td><td style='text-align: center; word-wrap: break-word;'>[110]</td><td style='text-align: center; word-wrap: break-word;'>35 nm</td><td style='text-align: center; word-wrap: break-word;'>16 nm</td><td style='text-align: center; word-wrap: break-word;'>50 nm</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>60</td><td style='text-align: center; word-wrap: break-word;'>[011]</td><td style='text-align: center; word-wrap: break-word;'>[111]</td><td style='text-align: center; word-wrap: break-word;'>[211]</td><td style='text-align: center; word-wrap: break-word;'>20 nm</td><td style='text-align: center; word-wrap: break-word;'>16 nm</td><td style='text-align: center; word-wrap: break-word;'>87 nm</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>90 (edge)</td><td style='text-align: center; word-wrap: break-word;'>[121]</td><td style='text-align: center; word-wrap: break-word;'>[111]</td><td style='text-align: center; word-wrap: break-word;'>[101]</td><td style='text-align: center; word-wrap: break-word;'>35 nm</td><td style='text-align: center; word-wrap: break-word;'>16 nm</td><td style='text-align: center; word-wrap: break-word;'>50 nm</td></tr></table>",
+    "page": 7
+  },
+  {
+    "typer": "paragraph",
+    "text": "2.3. Loading condition and average velocity",
+    "page": 7,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "A constant force parallel to the Burgers vector is applied on the top boundary while atoms in the bottom boundary are fixed. For a desired magnitude of the Schmid shear stress,  $ \\tau $, the force applied to each atom in the top boundary is,",
+    "page": 7
+  },
+  {
+    "typer": "formula",
+    "data": {
+      "text": "F=(F_{X},F_{Y},F_{Z})=(\\tau\\cos\\phi,0,\\tau\\sin\\phi)\\frac{A}{N},",
+      "latex": "F=(F_{X},F_{Y},F_{Z})=(\\tau\\cos\\phi,0,\\tau\\sin\\phi)\\frac{A}{N},"
+    },
+    "page": 7,
+    "block_label": "formula",
+    "reocr_source": "ppstructurev3_api_replace"
+  },
+  {
+    "typer": "paragraph",
+    "text": "where A is the XZ surface area, N is the number of total atoms in the top boundary and  $ \\phi $ is the dislocation character angle. For simulations at 300 K, the maximum  $ \\tau $ in this work is limited to 1000 MPa since only the subsonic portion of the dislocation mobility law is to be studied. In the phonon drag regime immediately above the critical resolved shear stress and in the transition velocity regime, a  $ \\tau $ increment of 10 MPa is used. Larger  $ \\tau $ increments are used outside of these regimes. For simulations at 500 and 700 K, only simulations in the phonon drag regime are conducted. Furthermore, for mixed dislocations, both positive and negative directions of the Schmid shear stress relative to the Burgers vector are studied to compute the mobility of mixed dislocations with different leading partial dislocations in the direction of glide. Specifically, the  $ 30^{\\circ} $ dislocation with a  $ 60^{\\circ} $ leading Shockley partial and the  $ 60^{\\circ} $ dislocation with an edge leading Shockley partial are defined as positive motion in the present work.",
     "page": 7
   },
   {
@@ -152,17 +335,94 @@
     "block_label": "title"
   },
   {
+    "typer": "paragraph",
+    "text": "The velocity of a dislocation as a function of Schmid shear stress has been previously described by an empirical function,",
+    "page": 8
+  },
+  {
+    "typer": "formula",
+    "data": {
+      "text": "b\\tau=\\left\\{\\begin{aligned}&B v\\quad&if v\\leqslant v_0\\\\ &B v+D(v-v_0)^{\\alpha}\\quad&if v>v_0,\\end{aligned}\\right.",
+      "latex": "b\\tau=\\left\\{\\begin{aligned}&B v\\quad&if v\\leqslant v_0\\\\ &B v+D(v-v_0)^{\\alpha}\\quad&if v>v_0,\\end{aligned}\\right."
+    },
+    "page": 8,
+    "block_label": "formula",
+    "reocr_source": "ppstructurev3_api_replace"
+  },
+  {
+    "typer": "paragraph",
+    "text": "where B is the linear drag coefficient, D is the nonlinear drag coefficient,  $ \\nu_0 $ is the critical velocity and  $ \\alpha $ is the power law exponent in the nonlinear drag regime [14, 15, 17]. This equation describes the dislocation damping mechanisms as a function of dislocation velocity. When the dislocation velocity  $ \\nu $ is smaller than the critical velocity  $ \\nu_0 $, only the phonon damping term  $ B\\nu $ is considered. When the dislocation velocity  $ \\nu $ is larger than the critical velocity  $ \\nu_0 $, an additional non-linear damping term accounting for the effect of wave emission is added. This equation is fit to MD simulation results.",
+    "page": 8
+  },
+  {
+    "typer": "paragraph",
+    "text": "Importantly, fitting a nonlinear equation to a set of nonlinear data can present several challenges, such as the possibility of multiple sets of parameters that provide a sufficiently accurate fit. Thus, three methods are used to fit the model in equation (3) to MD simulation results in the present work. In the first approach, the exponent is given a fixed value of 1.5, following Eshelby [28] and several prior MD works [13, 14, 30], and B, D and v₀ are fitting constants. In the second method, B, D, v₀ and exponent α are free fitting constants, with no predefined value assigned to exponent α. In the third method, a 3 MPa offset is applied with slope equal to the phonon damping parameter found via the second fitting method. The intersection between the offset line and the nonlinear mobility data is chosen as the critical velocity v₀. B is then determined based on the critical velocity v₀. Thus, only D and exponent α are free fitting constants. These three methods are named the ‘exponent-fixed’ method, ‘free-fit’ method and ‘offset’ method, respectively. The accuracies of these three methods are compared in section 3.2. The accuracy of fit is defined by the following equation,",
+    "page": 8
+  },
+  {
+    "typer": "formula",
+    "data": {
+      "text": "\\mathrm{A c c u r a c y}=1-\\frac{1}{2}{\\sum_{n=1}^{m}{{{\\left({{\\tau_{n}}-S\\left({{v_{n}}}\\right)}\\right)}^{2}}}},",
+      "latex": "\\mathrm{A c c u r a c y}=1-\\frac{1}{2}{\\sum_{n=1}^{m}{{{\\left({{\\tau_{n}}-S\\left({{v_{n}}}\\right)}\\right)}^{2}}}},"
+    },
+    "page": 8,
+    "block_label": "formula",
+    "reocr_source": "ppstructurev3_api_replace"
+  },
+  {
+    "typer": "paragraph",
+    "text": "where $m$ is the number of mobility data points (from MD simulations) used in one fitting, $\\tau_n$ is Schmid stress with $n$ referring to each MD simulation data point, $S$ is the nonlinear equation obtained from fitting equation (4), $v_n$ is the dislocation velocity from each MD simulation.",
+    "page": 8
+  },
+  {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_309_196_865_720.jpg",
-      "caption": ""
+      "caption": "Figure 2. Correlation length for screw,  $ 30^{\\circ} $,  $ 60^{\\circ} $ and edge dislocations in equiatomic HEA models.",
+      "figure_num": "2"
+    },
+    "page": 9,
+    "block_label": "figure"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_309_196_865_720.jpg",
+      "caption": "Figure 2. Correlation length for screw,  $ 30^{\\circ} $,  $ 60^{\\circ} $ and edge dislocations in equiatomic HEA models.",
+      "figure_num": "2"
     },
     "page": 9,
     "block_label": "figure"
   },
   {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 2. Correlation length for screw,  $ 30^{\\circ} $,  $ 60^{\\circ} $ and edge dislocations in equiatomic HEA models.</div>",
+    "text": "When calculating fitting accuracy, the magnitude of the difference between the Schmid shear stress used in a MD simulation and the Schmid shear stress calculated through the nonlinear equation S is measured for each data point. These magnitudes are summed as the error of fitting.",
+    "page": 9
+  },
+  {
+    "typer": "paragraph",
+    "text": "2.5. Model validation",
+    "page": 9,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "2.5.1. Validation of model size in X direction. To test if the X dimension of the model is sufficient (along the dislocation core), two approaches are taken. First, the correlation length is computed for each dislocation studied. Rao et al [20] defined a correlation function for a separation distance  $ x_{0} $ to find the effective x period of such fluctuations,",
+    "page": 9
+  },
+  {
+    "typer": "formula",
+    "data": {
+      "text": "C\\left(x_{0}\\right)=\\int\\left[z\\left(x\\right)-\\left\\langle z\\right\\rangle\\right]\\left[\\left(z\\left(x+x_{0}\\right)\\right)-\\left\\langle z\\right\\rangle\\right]\\mathrm{d}x,",
+      "latex": "C\\left(x_{0}\\right)=\\int\\left[z\\left(x\\right)-\\left\\langle z\\right\\rangle\\right]\\left[\\left(z\\left(x+x_{0}\\right)\\right)-\\left\\langle z\\right\\rangle\\right]\\mathrm{d}x,"
+    },
+    "page": 9,
+    "block_label": "formula",
+    "reocr_source": "ppstructurev3_api_replace"
+  },
+  {
+    "typer": "paragraph",
+    "text": "where  $ \\langle z \\rangle $ is the average magnitude of the fluctuation along the dislocation core, and  $ z(x) $ is the fluctuation at any point along the dislocation core. Figure 2 shows plots of  $ C(x_0) $ as a function of  $ x_0 $ for screw,  $ 30^\\circ $,  $ 60^\\circ $ and edge dislocations in equiatomic HEA models at 0 K (after energy minimization). The correlation function starts at a maximum and decreases towards zero. The value of  $ x_0 $ when  $ C(x_0) = 0 $ is defined as the correlation length. For example, for the screw dislocation in figure 2, the correlation function  $ C(x_0) $ crosses zero around  $ x_0 = 2.6 $ nm. Thus, the correlation length for the screw dislocation is around 2.6 nm in the equiatomic HEA model, which is approximately a factor of 8 smaller than the X dimension of the simulation cell in the core direction. Edge dislocations have the largest correlation length of approximately 5.8 nm in present work, yet this correlation length is still small when compared with the simulation.",
     "page": 9
   },
   {
@@ -179,28 +439,85 @@
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_310_437_864_956.jpg",
-      "caption": ""
+      "caption": "Figure 3. The potential energy (per atom) change as a function of the number of the attempted swaps during the hybrid MC/MD simulation for annealing temperature at (a) 300 K, (b) 700 K and (c) 1100 K.",
+      "figure_num": "3"
+    },
+    "page": 10,
+    "block_label": "figure"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_310_437_864_956.jpg",
+      "caption": "Figure 3. The potential energy (per atom) change as a function of the number of the attempted swaps during the hybrid MC/MD simulation for annealing temperature at (a) 300 K, (b) 700 K and (c) 1100 K.",
+      "figure_num": "3"
     },
     "page": 10,
     "block_label": "figure"
   },
   {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 3. The potential energy (per atom) change as a function of the number of the attempted swaps during the hybrid MC/MD simulation for annealing temperature at (a) 300 K, (b) 700 K and (c) 1100 K.</div>",
+    "text": "cell dimension of 35 nm in the X direction. Thus, the periodic boundary conditions along the dislocation line should not influence the line fluctuation. The correlation lengths are also calculated for screw and edge dislocations at 300, 500, and 700 K and are listed in table 3 (each correlation length is an average over 10 outputs over 10 ps of equilibration at a given temperature). Thermal vibrations influence the geometry of each dislocation; however, the correlation lengths are still much smaller than the simulation cell length.",
+    "page": 10
+  },
+  {
+    "typer": "paragraph",
+    "text": "The second approach is to compute dislocation velocity at select shear stresses using models with larger X dimensions. Specifically, a model where the X dimension is twice the size listed in table 2 is constructed with screw and edge dislocations. The difference in average dislocation velocity between the standard model and the larger model is less than 2% at applied shear stresses between 145 and 300 MPa. Thus, the length in the X direction is sufficient to not",
     "page": 10
   },
   {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_217_198_935_669.jpg",
-      "caption": ""
+      "caption": "Figure 4. WC parameter for every elemental pair at 300, 700, 1100 K annealing temperatures.",
+      "figure_num": "4"
+    },
+    "page": 11,
+    "block_label": "figure"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_217_198_935_669.jpg",
+      "caption": "Figure 4. WC parameter for every elemental pair at 300, 700, 1100 K annealing temperatures.",
+      "figure_num": "4"
     },
     "page": 11,
     "block_label": "figure"
   },
   {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 4. WC parameter for every elemental pair at 300, 700, 1100 K annealing temperatures.</div>",
+    "text": "influence waviness that occurs in the dislocation line, in agreement with the correlation length analysis.",
+    "page": 11
+  },
+  {
+    "typer": "paragraph",
+    "text": "2.5.2. Chemical short-range order. Chemical short range order plays an important role in dislocation motion for some HEAs like CoFeNiTi [41]. To assess the extent of CSRO in the FeNiCrCoCu HEA, a hybrid Monte Carlo/molecular dynamics (MC/MD) method is used, with the same setup as the MC/MD approach used by Antillon et al [41]. The Warren–Cowley (WC) parameter is used to characterize the degree of CSRO. The simulation cell used in this CSRO study is about 12 nm in each X, Y and Z directions (about 160 000 atoms).",
+    "page": 11
+  },
+  {
+    "typer": "paragraph",
+    "text": "To verify energy convergence during the hybrid MC/MD simulation, potential energy (per atom) is plotted as a function of the number of the attempted swaps during the hybrid simulation, as shown in figure 3. For an annealing temperature of 300 K, the potential energy per atom decreases and energy convergence is reached after about  $ 150 \\times 10^4 $ MC swap attempts. Smaller reductions in energy are observed at 700 and 1100 K, as shown in figure 3. For the CoFeNiTi HEA [41], the reduction in energy per atom during the MC/MD equilibration was on the order of 0.015 eV/atom, which is several orders of magnitude larger than the change in energy found for the FeNiCrCoCu HEA in this work.",
+    "page": 11
+  },
+  {
+    "typer": "paragraph",
+    "text": "The WC parameter [48–50] is used to quantify the details of any CSRO at 300, 700 and 1100 K annealing temperatures for the equiatomic HEA. The WC parameter is defined as,",
+    "page": 11
+  },
+  {
+    "typer": "formula",
+    "data": {
+      "text": "\\alpha^{n m}=\\frac{\\langle c_{i j k}^{n}\\rangle\\langle c_{p q r}^{m}\\rangle-\\langle c_{i j k}^{n}c_{p q r}^{m}\\rangle}{c_{n}\\cdot c_{m}},",
+      "latex": "\\alpha^{n m}=\\frac{\\langle c_{i j k}^{n}\\rangle\\langle c_{p q r}^{m}\\rangle-\\langle c_{i j k}^{n}c_{p q r}^{m}\\rangle}{c_{n}\\cdot c_{m}},"
+    },
+    "page": 11,
+    "block_label": "formula",
+    "reocr_source": "ppstructurev3_api_replace"
+  },
+  {
+    "typer": "paragraph",
+    "text": "where  $ c_{ijk}^n $ and  $ c_{pqr}^m $ are status functions which denotes the local occupation of element  $ n $ or  $ m $ at lattice site  $ (i, j, k) $ or  $ (p, q, r) $.  $ c_{ijk}^n = 1 $ if element  $ n $ occupies the lattice site, otherwise  $ c_{ijk}^n = 0 $. The brackets denote averaging over all lattice sites in the system. The lattice sites  $ (i, j, k) $ and",
     "page": 11
   },
   {
@@ -209,24 +526,57 @@
     "page": 12
   },
   {
+    "typer": "paragraph",
+    "text": "<div style=\"text-align: center;\">(c)</div>",
+    "page": 12
+  },
+  {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_image_box_218_196_935_570.jpg",
-      "caption": ""
+      "caption": "Figure 5.  $ \\frac{a}{2} $ [T01] screw dislocation core in an equiatomic FeNiCrCoCu HEA on a map of (a) the potential energy and (b) the intrinsic stacking fault energy. The potential energy and intrinsic stacking fault energy are presented in units of mJ m $ ^{-2} $ for each local region on the slip plane at 0 K. The black lines represent the positions of the partial dislocations. (c) Enhanced view of the dislocation waviness in the equiatomic FeNiCrCoCu HEA on a map of the intrinsic stacking fault energy.",
+      "figure_num": "5"
+    },
+    "page": 12,
+    "block_label": "figure"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_image_box_218_196_935_570.jpg",
+      "caption": "Figure 5.  $ \\frac{a}{2} $ [T01] screw dislocation core in an equiatomic FeNiCrCoCu HEA on a map of (a) the potential energy and (b) the intrinsic stacking fault energy. The potential energy and intrinsic stacking fault energy are presented in units of mJ m $ ^{-2} $ for each local region on the slip plane at 0 K. The black lines represent the positions of the partial dislocations. (c) Enhanced view of the dislocation waviness in the equiatomic FeNiCrCoCu HEA on a map of the intrinsic stacking fault energy.",
+      "figure_num": "5"
     },
     "page": 12,
     "block_label": "figure"
   },
   {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 5.  $ \\frac{a}{2} $ [T01] screw dislocation core in an equiatomic FeNiCrCoCu HEA on a map of (a) the potential energy and (b) the intrinsic stacking fault energy. The potential energy and intrinsic stacking fault energy are presented in units of mJ m $ ^{-2} $ for each local region on the slip plane at 0 K. The black lines represent the positions of the partial dislocations. (c) Enhanced view of the dislocation waviness in the equiatomic FeNiCrCoCu HEA on a map of the intrinsic stacking fault energy.</div>",
+    "text": "$(p, q, r)$ should be close to each other to characterize the degree of CSRO in the system. In this work, only the first shell of nearest neighbors is considered to calculate the WC parameter. $c_n$ and $c_m$ are the global concentration for element $n$ and $m$. A positive value of the WC parameter denotes preferences for segregation, whereas negative values means that the lattice structures tend to chemically order. A value of the WC parameter of zero represents a purely random solid solution.",
+    "page": 12
+  },
+  {
+    "typer": "paragraph",
+    "text": "Figure 4 show the WC parameters for the equiatomic FeNiCrCoCu HEA after annealing simulation at 300, 700 and 1100 K. For the CoFeNiTi HEA, Antillon et al [41] measured the largest positive value of WC parameter (Ti–Ti pair) to be about 0.4 which was considered as segregation. The Fe–Ti pair had a negative value with similar magnitude [41], which was understood as chemically order. For the equiatomic FeNiCrCoCu HEA shown in figure 4, on the other hand, the largest positive WC parameter value (Cu–Ni pair) is about 0.04. Meanwhile, the largest negative WC parameter value (Cr–Fe pair) is about −0.04. These two WC parameters are one order of magnitude smaller than the corresponding WC value in Antillon et al [41] which indicates that CSRO in the equiatomic FeNiCrCoCu is minor.",
+    "page": 12
+  },
+  {
+    "typer": "paragraph",
+    "text": "3. Stacking fault energy distribution and dislocation line waviness",
+    "page": 12,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "Before MD simulations of dislocation mobility and waviness are performed, an example showing the complexity of the environment experienced by a dislocation in a HEA is presented. Figure 5 shows a relaxed  $ \\frac{a}{2} $ [T01] screw dislocation in an equiatomic FeNiCrCoCu HEA at 0 K, superimposed on a map of the potential energy and intrinsic SFE. First, the (111) surface is divided into 4000 small regions. The potential energy is calculated by summing up the potential energy of every atom within a small volume surrounding the glide plane and dividing by the area of each small region. To calculate stacking fault energies, the upper half of the",
     "page": 12
   },
   {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_217_198_568_525.jpg",
-      "caption": ""
+      "caption": "Figure 6. Dislocation velocity as a function of applied shear stress divided by temperature for screw dislocations in (a) Ni and (b) FeNiCrCoCu and for edge dislocations in (c) Ni and (d) FeNiCrCoCu.",
+      "figure_num": "6"
     },
     "page": 13,
     "block_label": "figure"
@@ -259,8 +609,23 @@
     "block_label": "figure"
   },
   {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_217_198_568_525.jpg",
+      "caption": "Figure 6. Dislocation velocity as a function of applied shear stress divided by temperature for screw dislocations in (a) Ni and (b) FeNiCrCoCu and for edge dislocations in (c) Ni and (d) FeNiCrCoCu.",
+      "figure_num": "6"
+    },
+    "page": 13,
+    "block_label": "figure"
+  },
+  {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 6. Dislocation velocity as a function of applied shear stress divided by temperature for screw dislocations in (a) Ni and (b) FeNiCrCoCu and for edge dislocations in (c) Ni and (d) FeNiCrCoCu.</div>",
+    "text": "simulation cell is translated with respect to the bottom half in the  $ [\\mathrm{I2T}] $ direction on the (111) plane. Then, intrinsic stacking fault energies for each small region are calculated. Each grid point on the energy maps in figure 5 represents one of these small areas. The average intrinsic SFE on the (111) plane for the equiatomic HEA, Ni-rich HEA and Cu-rich HEA are found to be 62.4 mJ m⁻², 62.8 mJ m⁻² and 60.4 mJ m⁻², respectively, which are similar to the value of 60 mJ m⁻² calculated by Pasianot and Farkas [18]. The intrinsic SFE on the (111) plane for homogeneous Ni and Cu are 123.5 mJ m⁻² and 43.2 mJ m⁻², respectively.",
+    "page": 13
+  },
+  {
+    "typer": "paragraph",
+    "text": "Similar to the well-known behavior of dislocations in homogeneous Ni and Cu, the screw dislocation in the HEA splits into Shockley partial dislocations with a connecting stacking fault, and dislocation cores within the  $ (111) $ glide plane. As shown in figures 5(a) and (b), each local area has a unique value of potential energy and intrinsic SFE, respectively. Waviness in the core structure is observed, with enhanced view shown in figure 5(c). Since no thermal vibration is involved in this calculation, this position variation along the dislocation core results from local energy variations surrounding the dislocation. Here, the potential energy and the intrinsic SFE are used to illustrate the complexity of this energy landscape.",
     "page": 13
   },
   {
@@ -280,10 +645,32 @@
     "block_label": "title"
   },
   {
+    "typer": "paragraph",
+    "text": "4.1. Temperature dependence of the dislocation drag coefficient",
+    "page": 14,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "The complexity of the energetic environment, which influences waviness of dislocations in HEAs, could affect dislocation mobility. Inspired by Olmsted et al [13], the temperature dependence of the dislocation drag coefficient B in the phonon drag regime is examined first. Figure 6 shows average dislocation velocity as a function of Schmid shear stress normalized by temperature for screw and edge dislocations in Ni and the FeNiCrCoCu equiatomic HEA. As shown in figure 6(a), screw dislocation velocity is nearly linear in  $ \\tau/T $ up to 0.3 MPa K $ ^{-1} $ for homogeneous Ni, which is similar to observations made by Olmsted et al [13]. The value of the dislocation drag coefficient B divided by temperature in homogeneous Ni and the equiatomic HEA at 300, 500 and 700 K are shown in table 4. The relative difference of B/T for screw dislocations in Ni between 300 and 700 K is around 16%. Specifically, the relative difference of B/T for Ni between 300 and 500 K is about 6% and the difference between 500 and 700 K is about 11%. These results indicate that the dislocation drag coefficient B generally has linear dependence on temperature in Ni which is consistent with the Leibfried model for phonon damping where B is linearly dependent on temperature.",
+    "page": 14
+  },
+  {
+    "typer": "paragraph",
+    "text": "For the equiatomic FeNiCrCoCu HEA, in figure 6(b), screw dislocation velocity is linear with  $ \\tau/T $ at each temperature, which is similar that in homogeneous Ni. However, the value of the dislocation drag coefficient B divided by temperature shows much wider variation for the temperature range 300 to 700 K. Similar phenomenon can be observed for edge dislocations, as shown in figures 6(c) and (d). The dislocation drag coefficient B shows strong linear dependence on temperature in Ni, whereas the drag coefficient B for the equiatomic HEA does not show the same linear dependence on temperature. This is quantified in table 4, where it is shown that the relative variation in B/T for the equiatomic HEA in the temperature range of 300 to 700 K is 40% for screw dislocations and 36% for edge dislocations. Thus, the dislocation velocity v is not solely influenced by  $ \\tau/T $ in the HEA. Other factors which are unique to dislocation behaviors in HEAs must be understood and considered to pose a temperature dependent dislocation damping model.",
+    "page": 14
+  },
+  {
+    "typer": "paragraph",
+    "text": "Recall, figure 5 shows peaks and valleys within the energetic landscape. In this work, average dislocation waviness is considered as a simple measure of the local energetic environment. Figure 7 shows the waviness of the leading partial dislocations in screw and edge dislocations in Ni and the FeNiCrCoCu equiatomic HEA at 300, 500 and 700 K. Waviness is defined for a single snapshot as the standard deviation of the position of Shockley partial dislocation segments along the dislocation core direction. Then, the average waviness of a dislocation at any given applied shear stress and temperature is averaged over 300 snapshots during dislocation motion.",
+    "page": 14
+  },
+  {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_217_198_575_529.jpg",
-      "caption": ""
+      "caption": "Figure 7. Waviness of the leading partial in a screw dislocation for (a) Ni and (b) FeNi-CrCoCu HEA and in an edge dislocation for (c) Ni and (d) FeNiCrCoCu HEA at 300, 500 and 700 K degrees. Waviness is measured as the standard deviation of position variation along the dislocation core and averaged over 300 ps. Figures (a)–(d) have the same scale and the y-axis range of figure (d) is shifted from 0–0.30 to 0.25–0.55 because the dislocation waviness of equiatomic HEA is larger in an edge dislocation.",
+      "figure_num": "7"
     },
     "page": 15,
     "block_label": "figure"
@@ -316,22 +703,53 @@
     "block_label": "figure"
   },
   {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_217_198_575_529.jpg",
+      "caption": "Figure 7. Waviness of the leading partial in a screw dislocation for (a) Ni and (b) FeNi-CrCoCu HEA and in an edge dislocation for (c) Ni and (d) FeNiCrCoCu HEA at 300, 500 and 700 K degrees. Waviness is measured as the standard deviation of position variation along the dislocation core and averaged over 300 ps. Figures (a)–(d) have the same scale and the y-axis range of figure (d) is shifted from 0–0.30 to 0.25–0.55 because the dislocation waviness of equiatomic HEA is larger in an edge dislocation.",
+      "figure_num": "7"
+    },
+    "page": 15,
+    "block_label": "figure"
+  },
+  {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 7. Waviness of the leading partial in a screw dislocation for (a) Ni and (b) FeNi-CrCoCu HEA and in an edge dislocation for (c) Ni and (d) FeNiCrCoCu HEA at 300, 500 and 700 K degrees. Waviness is measured as the standard deviation of position variation along the dislocation core and averaged over 300 ps. Figures (a)–(d) have the same scale and the y-axis range of figure (d) is shifted from 0–0.30 to 0.25–0.55 because the dislocation waviness of equiatomic HEA is larger in an edge dislocation.</div>",
+    "text": "As shown in figures 7(a) and (b), the waviness of the leading partial in screw dislocations for both Ni and the equiatomic HEA are dependent on temperature and applied shear stress. At a given temperature, as the applied shear stress increases, the leading partial dislocation waviness in both Ni and the equiatomic HEA decreases. However, the slope of the relationships between dislocation waviness and applied shear stress in the equiatomic HEA is notably steeper than in Ni. Thus, waviness of dislocations in the equiatomic HEA is more sensitive to applied shear stress than in Ni.",
+    "page": 15
+  },
+  {
+    "typer": "paragraph",
+    "text": "Moreover, as shown in figure 7(a), the relationships between dislocation waviness and applied shear stresses at 300, 500, and 700 K are nearly parallel to each other, which indicates that the influence of temperature on screw dislocation waviness is similar at each applied shear stress in homogeneous Ni. This feature is in line with the nearly linear dependence of the dislocation drag coefficient B on temperature in homogeneous Ni. On the other hand, as shown in figure 7(b) for the equiatomic HEA, temperature has very minor influence on the dislocation",
     "page": 15
   },
   {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_309_199_863_710.jpg",
-      "caption": ""
+      "caption": "Figure 8. Screw dislocation velocity as a function of shear stress for different fitting methods in homogeneous Ni and an equiatomic FeNiCrCoCu HEA at 300 K. Error bars represent  $ \\pm $1 standard deviation in the dislocation velocity measured over the averaging time for each applied shear stress.",
+      "figure_num": "8"
+    },
+    "page": 16,
+    "block_label": "figure"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_309_199_863_710.jpg",
+      "caption": "Figure 8. Screw dislocation velocity as a function of shear stress for different fitting methods in homogeneous Ni and an equiatomic FeNiCrCoCu HEA at 300 K. Error bars represent  $ \\pm $1 standard deviation in the dislocation velocity measured over the averaging time for each applied shear stress.",
+      "figure_num": "8"
     },
     "page": 16,
     "block_label": "figure"
   },
   {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 8. Screw dislocation velocity as a function of shear stress for different fitting methods in homogeneous Ni and an equiatomic FeNiCrCoCu HEA at 300 K. Error bars represent  $ \\pm $1 standard deviation in the dislocation velocity measured over the averaging time for each applied shear stress.</div>",
+    "text": "waviness when the applied shear stress is 145 MPa. Physically, the energetic peaks and valleys caused by the random chemical environment force the dislocation into a specific wavy configuration. However, the influence of temperature on waviness increases as the applied shear stress increases. This aligns with the non-linear dependence of the drag coefficient B on temperature in the equiatomic HEA.",
+    "page": 16
+  },
+  {
+    "typer": "paragraph",
+    "text": "Figures 7(c) and (d) show the waviness of the leading partial in an edge dislocation for both Ni and the equiatomic FeNiCrCoCu HEA. The relationship between dislocation waviness and applied shear stresses at 500 and 700 K are generally parallel in homogeneous Ni whereas the curve at 300 K shows some deviation, which can be correlated to the observation that the relationship between dislocation velocity and  $ \\tau/T $ for homogeneous Ni at 300 K is slightly offset from the data at 500 and 700 K, as shown in figure 6(c). Quantitatively, the relative difference of B/T for Ni between 300 and 500 K is about 6%, which is larger than the relative difference of B/T between 500 and 700 K (approximately 2%). For the equiatomic HEA, shown in figure 6(d), the temperature dependence of dislocation waviness for an edge dislocation is qualitatively similar to that observed for a screw dislocation in figure 7(b). Temperature has very minor influence on the dislocation waviness at applied shear stresses of 145 or 200 MPa. However, as the applied shear stress increases, the influence of temperature on waviness increases. This again implies that the complex local environment and presence of energetic peaks and valleys that influence the conformation and continuous motion of the dislocation are factors that influence the drag coefficient B and its temperature dependence in HEAs.",
     "page": 16
   },
   {
@@ -351,10 +769,26 @@
     "block_label": "title"
   },
   {
+    "typer": "paragraph",
+    "text": "Next, the full mobility curve in the subsonic regime is examined. Figure 8 shows screw dislocation mobility and model fits for homogeneous Ni and the equiatomic FeNiCrCoCu HEA via the three methods introduced in section 2.4. Table 5 shows all parameters resulting from the model fits, including the exponent and critical velocity. As shown in figure 8, the free-fit and offset methods are in close agreement with each other and in better agreement with mobility data than the exponent-fixed method for both homogeneous Ni and the equiatomic FeNiCrCoCu HEA model. As shown in table 5, the offset method provides a value for the critical velocity that logically matches where the linear to nonlinear transition occurs in figure 8 for both homogeneous Ni and the equiatomic HEA. On the other hand, the free fit method provides a much smaller value of the critical velocity, which is visually in the phonon drag (linear) region of the dislocation mobility data. Thus, because a fit with high accuracy and logical values of fitting constants is obtained, the offset method is used in all model fits for the remainder of this work.",
+    "page": 17
+  },
+  {
+    "typer": "paragraph",
+    "text": "Figure 9 shows screw and edge dislocation velocity as a function of applied shear stress for equiatomic FeNiCrCoCu HEA, Ni-rich HEA and Cu-rich HEA models. In addition, mobility relationships for screw and edge dislocations in homogeneous Ni and Cu from 10 to 1000 MPa are provided. As shown in figures 9(a) and (b), the critical shear stress necessary to achieve continuous dislocation motion in HEAs is significantly higher than that in homogeneous Ni or Cu for both screw and edge dislocations. For screw dislocations, the critical shear stress for HEAs is in the range of 100–110 MPa, while the critical shear stress for homogeneous Ni and Cu is around 5 MPa. This order of magnitude difference is in line with previous work [20, 41]. The high critical shear stress required to initiate continuous dislocation motion in HEAs is a consequence of the complex chemical and energetic environments in HEAs.",
+    "page": 17
+  },
+  {
+    "typer": "paragraph",
+    "text": "With a sufficient Schmid shear stress for continuous dislocation motion, the mobility laws for screw and edge dislocations in homogeneous Ni and Cu have an initially linear phonon drag regime and then a transition to a nonlinear radiative damping regime, consistent with prior studies of the mobility of dislocations in FCC metals [13, 15]. The transition stress that separates these two regimes is around 75 to 125 MPa for screw dislocations and 175 to 200 MPa for edge dislocations. Mobility curves for HEA models show a similar form to that in homogeneous Ni and Cu. An initially linear phonon drag regime and a transition to a nonlinear radiative damping regime can be observed. The transition stresses for HEAs are between 250 to 300 MPa for edge dislocations and 350 to 400 MPa for screw dislocations, which are significantly higher than transition stresses in Ni or Cu. The dislocation velocity in homogeneous Ni is always higher than that in HEA models for both screw and edge dislocations in the range of Schmid shear stress studied in this work. However, the dislocation velocity in homogeneous Cu is not",
+    "page": 17
+  },
+  {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_217_197_571_526.jpg",
-      "caption": ""
+      "caption": "Figure 9. Dislocation velocity as a function of Schmid shear stress for (a) screw dislocations and (b) edge dislocations in an equiatomic FeNiCrCoCu HEA, Ni-rich HEA, Cu-rich HEA, homogeneous Ni and Cu at 300 K.",
+      "figure_num": "9"
     },
     "page": 18,
     "block_label": "figure"
@@ -369,29 +803,86 @@
     "block_label": "figure"
   },
   {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_217_197_571_526.jpg",
+      "caption": "Figure 9. Dislocation velocity as a function of Schmid shear stress for (a) screw dislocations and (b) edge dislocations in an equiatomic FeNiCrCoCu HEA, Ni-rich HEA, Cu-rich HEA, homogeneous Ni and Cu at 300 K.",
+      "figure_num": "9"
+    },
+    "page": 18,
+    "block_label": "figure"
+  },
+  {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 9. Dislocation velocity as a function of Schmid shear stress for (a) screw dislocations and (b) edge dislocations in an equiatomic FeNiCrCoCu HEA, Ni-rich HEA, Cu-rich HEA, homogeneous Ni and Cu at 300 K.</div>",
+    "text": "<div style=\"text-align: center;\">Table 6. Results of the fit of equation (4) to the MD simulation data using the offset method. Units on the parameter D depend on the value of the exponent  $ \\alpha $ and are sensitive to the units shown in figure 8 for shear stress and velocity.</div>",
+    "page": 18
+  },
+  {
+    "typer": "paragraph",
+    "text": "<table border=1 style='margin: auto; word-wrap: break-word;'><tr><td rowspan=\"2\"></td><td colspan=\"4\">Screw dislocation</td><td colspan=\"4\">Edge dislocation</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>B ( $ \\times $10 $ ^{-5} $ Pa s) $ \\times $10 $ ^{-7} $)</td><td style='text-align: center; word-wrap: break-word;'>D  $ \\alpha $</td><td style='text-align: center; word-wrap: break-word;'>$ \\nu_{o} $ (nm ps $ ^{-1} $)</td><td style='text-align: center; word-wrap: break-word;'>B ( $ \\times $10 $ ^{-5} $ Pa s) $ \\times $10 $ ^{-7} $)</td><td style='text-align: center; word-wrap: break-word;'>D ( $ \\times $10 $ ^{-7} $)</td><td style='text-align: center; word-wrap: break-word;'>$ \\nu_{o} $ (nm ps $ ^{-1} $)</td><td style='text-align: center; word-wrap: break-word;'>$ \\alpha $</td><td style='text-align: center; word-wrap: break-word;'>$ \\nu_{o} $ (nm ps $ ^{-1} $)</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Ni</td><td style='text-align: center; word-wrap: break-word;'>2.664</td><td style='text-align: center; word-wrap: break-word;'>1.892</td><td style='text-align: center; word-wrap: break-word;'>2.9</td><td style='text-align: center; word-wrap: break-word;'>1.017</td><td style='text-align: center; word-wrap: break-word;'>2.365</td><td style='text-align: center; word-wrap: break-word;'>12.667</td><td style='text-align: center; word-wrap: break-word;'>3.8</td><td style='text-align: center; word-wrap: break-word;'>1.62</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Ni-rich HEA</td><td style='text-align: center; word-wrap: break-word;'>4.817</td><td style='text-align: center; word-wrap: break-word;'>2.190</td><td style='text-align: center; word-wrap: break-word;'>2.7</td><td style='text-align: center; word-wrap: break-word;'>1.017</td><td style='text-align: center; word-wrap: break-word;'>4.089</td><td style='text-align: center; word-wrap: break-word;'>8.848</td><td style='text-align: center; word-wrap: break-word;'>2.5</td><td style='text-align: center; word-wrap: break-word;'>1.5879</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Eq HEA</td><td style='text-align: center; word-wrap: break-word;'>4.848</td><td style='text-align: center; word-wrap: break-word;'>2.325</td><td style='text-align: center; word-wrap: break-word;'>2.4</td><td style='text-align: center; word-wrap: break-word;'>1.025</td><td style='text-align: center; word-wrap: break-word;'>4.421</td><td style='text-align: center; word-wrap: break-word;'>10.114</td><td style='text-align: center; word-wrap: break-word;'>3.1</td><td style='text-align: center; word-wrap: break-word;'>1.5815</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Cu-rich HEA</td><td style='text-align: center; word-wrap: break-word;'>5.261</td><td style='text-align: center; word-wrap: break-word;'>2.250</td><td style='text-align: center; word-wrap: break-word;'>2.2</td><td style='text-align: center; word-wrap: break-word;'>0.968</td><td style='text-align: center; word-wrap: break-word;'>5.035</td><td style='text-align: center; word-wrap: break-word;'>7.718</td><td style='text-align: center; word-wrap: break-word;'>2.7</td><td style='text-align: center; word-wrap: break-word;'>1.4413</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Cu</td><td style='text-align: center; word-wrap: break-word;'>5.249</td><td style='text-align: center; word-wrap: break-word;'>1.707</td><td style='text-align: center; word-wrap: break-word;'>2.7</td><td style='text-align: center; word-wrap: break-word;'>0.433</td><td style='text-align: center; word-wrap: break-word;'>4.122</td><td style='text-align: center; word-wrap: break-word;'>13.281</td><td style='text-align: center; word-wrap: break-word;'>3.4</td><td style='text-align: center; word-wrap: break-word;'>1.073</td></tr></table>",
+    "page": 18
+  },
+  {
+    "typer": "paragraph",
+    "text": "always higher than that in HEAs models. For both screw and edge dislocations, velocity in homogeneous Cu is higher than that in HEA models at low shear stresses but is lower in the radiative damping regime. In addition, dislocations in Ni-rich HEAs show higher velocity than the same dislocation in equiatomic and Cu-rich HEAs.",
+    "page": 18
+  },
+  {
+    "typer": "paragraph",
+    "text": "The offset method fitting results are listed in table 6. Overall, phonon drag coefficients for HEAs are not dramatically different than phonon drag coefficients in pure Ni or Cu. Blaschke [51] computed phonon drag coefficients for Ni and Cu between  $ 1 \\times 10^{-5} $ and  $ 3 \\times 10^{-5} $ Pa s depending on dislocation character angle and dislocation velocity, with Cu having a higher value of B than Ni. Bitzek et al [52] used MD simulations to study phonon drag on dislocations in Ni and reported a value of  $ \\sim 1.8 \\times 10^{-5} $ Pa s for screw dislocation and  $ \\sim 1.5 \\times 10^{-5} $ Pa s for edge dislocation. These values and ordering are consistent with those found in this work using the 5 element EAM potential. Furthermore, it is clear that a fixed value of 1.5 for the exponent cannot satisfy the radiative damping region fitting.",
+    "page": 18
+  },
+  {
+    "typer": "paragraph",
+    "text": "For homogeneous Ni and Cu, the velocities of edge dislocations are always higher than velocities of screw dislocations, which indicates that edge dislocations have higher mobility. This is consistent with previous studies on the mobilities of straight edge and screw dislocations.",
     "page": 18
   },
   {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_311_197_860_704.jpg",
-      "caption": ""
+      "caption": "Figure 10. Mobility curves for screw, 30°, 60° and edge dislocations in positive motion direction in an equiatomic FeNiCrCoCu HEA at 300 K.",
+      "figure_num": "10"
+    },
+    "page": 19,
+    "block_label": "figure"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_311_197_860_704.jpg",
+      "caption": "Figure 10. Mobility curves for screw, 30°, 60° and edge dislocations in positive motion direction in an equiatomic FeNiCrCoCu HEA at 300 K.",
+      "figure_num": "10"
     },
     "page": 19,
     "block_label": "figure"
   },
   {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 10. Mobility curves for screw, 30°, 60° and edge dislocations in positive motion direction in an equiatomic FeNiCrCoCu HEA at 300 K.</div>",
+    "text": "[13, 16]. However, this behavior does not apply to HEAs models. As shown in figure 10, screw dislocations have a slightly lower critical shear stress for motion than edge dislocations. This translation means that at Schmid stresses below 250 MPa they have a slightly higher velocity than edge dislocations. However, in the radiative damping regime, MD simulations show that edge dislocations move faster than screw dislocations in these HEAs.",
+    "page": 19
+  },
+  {
+    "typer": "paragraph",
+    "text": "Figure 10 also shows dislocation mobility curves for mixed dislocations in the equiatomic HEA. 30° dislocations have the lowest critical shear stress (95 MPa) for dislocation motion, a steep slope in the phonon drag region and the highest transition velocity among all dislocations considered. Edge dislocations require a higher critical shear stress (125 MPa) for dislocation motion than screw, 30° and 60° dislocations. Edge and 60° dislocations have similar dislocation mobilities in the linear regime while edge dislocations have a larger transition velocity.",
+    "page": 19
+  },
+  {
+    "typer": "paragraph",
+    "text": "As stated in section 2.3, the 30° dislocation with a 60° leading Shockley partial and the 60° dislocation with an edge leading Shockley partial are defined as positive motion. Figure 11(a) shows that the velocities of a 30° dislocation in homogeneous Cu in positive and negative motion directions are nearly identical, whereas the velocity of a 30° dislocation in an equiatomic HEA is slightly higher in the negative motion direction than in the positive direction. In figure 11(b), the velocity of a 60° dislocation in homogeneous Cu in the positive motion direction is higher than the mobility of a 60° dislocation in the negative motion direction, especially in the nonlinear regime. However, the mobility of a 60° dislocation in an equiatomic HEA with edge leading partial and with 30° leading partial show a much smaller difference.",
+    "page": 19
+  },
+  {
+    "typer": "paragraph",
+    "text": "Dang et al [17] observed a much larger difference between the velocity of  $ 30^{\\circ} $ dislocations in positive and negative directions in homogeneous Al. Dang et al [17] also showed that  $ 60^{\\circ} $ dislocations in Al have a larger dependence on the direction of motion than what is shown",
     "page": 19
   },
   {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_216_198_565_531.jpg",
-      "caption": ""
+      "caption": "Figure 11. Mobility curves for (a) 30° and (b) 60° dislocations in positive and negative motion directions in an equiatomic HEA and homogeneous Cu at 300 K.",
+      "figure_num": "11"
     },
     "page": 20,
     "block_label": "figure"
@@ -406,15 +897,42 @@
     "block_label": "figure"
   },
   {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_216_198_565_531.jpg",
+      "caption": "Figure 11. Mobility curves for (a) 30° and (b) 60° dislocations in positive and negative motion directions in an equiatomic HEA and homogeneous Cu at 300 K.",
+      "figure_num": "11"
+    },
+    "page": 20,
+    "block_label": "figure"
+  },
+  {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 11. Mobility curves for (a) 30° and (b) 60° dislocations in positive and negative motion directions in an equiatomic HEA and homogeneous Cu at 300 K.</div>",
+    "text": "in figure 11(b) for 60° dislocations in Cu and HEAs. These differences are likely because Al has a larger value of the SFE and different elastic constants, leading to a much narrower SFW compared to Cu and HEAs. To confirm this argument, simulations of a 30° dislocation in homogeneous Ni in both directions of motion at 1000 MPa shear stress are conducted. The results in figure 11(a) show that the velocity in the negative motion direction is notably higher than that in the positive direction. Thus, the direction of motion (dislocation core structure) has obvious influence on the dislocation mobility in homogeneous Al and Ni and less or even negligible influence on the dislocation mobility in equiatomic HEA and homogeneous Cu. In the case of the HEAs in this work, since the average SFE is similar to Cu, this implies that other factors related to the motion of the dislocation, such as variable energetic barriers on the slip plane and dislocation waviness, have significant influence and may mitigate the effect of the direction of motion.",
+    "page": 20
+  },
+  {
+    "typer": "paragraph",
+    "text": "4.3. Partial dislocation waviness",
+    "page": 20,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "As discussed in section 3.1 and shown in figure 5(c), dislocation core structure in HEAs shows significant waviness in the leading and trailing partial dislocation lines, which is not present in homogeneous metals. Section 4.1 studied the waviness of screw and edge dislocations in both homogeneous Ni and an equiatomic HEA in the linear phonon drag regime at 300, 500 and 700 K and identified a correlation with the drag coefficient B and its temperature dependence in HEAs. In this section, the study of dislocation waviness as a surrogate for the energetic environment is expanded to analyze the full dislocation mobility law. Specifically, this section shows dislocation waviness is correlated to dislocation mobility for screw, edge, and mixed dislocations in homogeneous Ni and Cu and in HEAs with different compositions.",
+    "page": 20
+  },
+  {
+    "typer": "paragraph",
+    "text": "As shown in figures 12(a) and (b), waviness along the dislocation core is relatively small in both Ni and Cu, and the variation only modestly changes with the applied shear stress. The waviness in Ni and Cu models is caused mostly by thermal vibration effects. On the other hand, leading partial dislocations in all HEA models show high waviness at low applied shear stresses (relative to the critical shear stress) and the waviness decreases significantly with an increase in applied shear stress. This large difference in dislocation waviness is",
     "page": 20
   },
   {
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_216_200_584_533.jpg",
-      "caption": ""
+      "caption": "Figure 12. Waviness of leading partial dislocations for (a) screw dislocations and (b) edge dislocations with different model compositions. Waviness is measured as the standard deviation of position variation along the dislocation core.",
+      "figure_num": "12"
     },
     "page": 21,
     "block_label": "figure"
@@ -423,15 +941,30 @@
     "typer": "image",
     "data": {
       "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_583_201_938_531.jpg",
-      "caption": ""
+      "caption": "Figure 13. Waviness of leading and trailing partial dislocation for  $ 30^{\\circ} $ dislocations where the leading partial dislocation is the  $ 60^{\\circ} $ dislocation or the screw dislocation in an equiatomic HEA.",
+      "figure_num": "13"
     },
     "page": 21,
     "block_label": "figure"
   },
   {
-    "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 12. Waviness of leading partial dislocations for (a) screw dislocations and (b) edge dislocations with different model compositions. Waviness is measured as the standard deviation of position variation along the dislocation core.</div>",
-    "page": 21
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_216_200_584_533.jpg",
+      "caption": "Figure 12. Waviness of leading partial dislocations for (a) screw dislocations and (b) edge dislocations with different model compositions. Waviness is measured as the standard deviation of position variation along the dislocation core.",
+      "figure_num": "12"
+    },
+    "page": 21,
+    "block_label": "figure"
+  },
+  {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_216_667_574_1001.jpg",
+      "caption": ""
+    },
+    "page": 21,
+    "block_label": "figure"
   },
   {
     "typer": "image",
@@ -443,8 +976,18 @@
     "block_label": "figure"
   },
   {
+    "typer": "image",
+    "data": {
+      "image_path": "data/raw/AYzKurHBzHG1b1fwQhhw/images/img_in_chart_box_583_201_938_531.jpg",
+      "caption": "Figure 13. Waviness of leading and trailing partial dislocation for  $ 30^{\\circ} $ dislocations where the leading partial dislocation is the  $ 60^{\\circ} $ dislocation or the screw dislocation in an equiatomic HEA.",
+      "figure_num": "13"
+    },
+    "page": 21,
+    "block_label": "figure"
+  },
+  {
     "typer": "paragraph",
-    "text": "<div style=\"text-align: center;\">Figure 13. Waviness of leading and trailing partial dislocation for  $ 30^{\\circ} $ dislocations where the leading partial dislocation is the  $ 60^{\\circ} $ dislocation or the screw dislocation in an equiatomic HEA.</div>",
+    "text": "caused by the variable energetic landscape. As the applied shear stress increases (in the range 500–1000 MPa), the waviness of the leading Shockley partial in screw dislocations (figure 13(a)) and in edge dislocations (figure 13(b)) in each HEA model becomes similar to that in Cu; this aligns with the observation that dislocations in HEAs move at similar or slightly higher velocities than homogeneous Cu in this shear stress range. The dislocation waviness in homogeneous Ni is always smaller than that in HEAs in the shear stress range used in the present work. Correspondingly, dislocations in Ni always shows higher mobilities than in HEAs, in the stress range used in this work. A conclusion can be made that large waviness in the dislocation core, which is due to the variable local chemical and energetic environment, strongly affects the details of dislocation motion.",
     "page": 21
   },
   {
@@ -460,6 +1003,21 @@
   },
   {
     "typer": "paragraph",
+    "text": "Dislocation mobility in FeNiCrCoCu high entropy alloys is studied via MD simulations and compared with that in homogeneous Ni and Cu. This HEA has minimal CSRO, as shown by hybrid MC/MD simulations, which makes it ideal to isolate the influence of local distortion on dislocation mobility. First, temperature dependence of the dislocation drag coefficient B in the phonon damping regime is studied. The dislocation drag coefficient B for HEAs is not linearly dependent on temperature, which is a feature of phonon drag in pure Ni. This is rationalized by studying the shear stress and temperature dependence of the leading partial dislocation waviness in both the equiatomic HEA and homogeneous Ni models. Temperature influences dislocation waviness differently at each stress magnitude in the HEA, and this result correlates with the observed temperature dependence of the phonon drag coefficient.",
+    "page": 22
+  },
+  {
+    "typer": "paragraph",
+    "text": "Second, the full mobility relationship is explored for dislocations in HEAs and in homogeneous Ni and Cu. Three different methods are systematically evaluated for fitting dislocation mobility data for screw, 30°, 60° and edge dislocations. The offset fitting method is found to provide the most accurate fit with a logical transition velocity. Initial continuous dislocation motion in HEA models requires much higher critical shear stress than in Ni or Cu, approximately by an order of magnitude. Yet, once a dislocation starts moving, the phonon drag coefficient for dislocation motion in HEAs is on the same order as phonon drag coefficients in pure Ni and Cu. In linear (phonon drag) regimes, the mobilities of screw and 30° dislocations are similar and the mobilities of edge and 60° dislocation are similar, which is different from homogeneous metals. In nonlinear regimes, the mobilities of screw and 60° dislocation are similar and the mobilities of 30° and edge dislocation are similar. Moreover, the mobility of 60° dislocations are found to depend modestly on the direction of motion (and hence dislocation core structure) in HEAs. Larger differences in directional dependence are observed in homogeneous Ni. Finally, at high velocities, the waviness of the dislocation line decreases to the point where it is similar the thermally induced waviness of Cu. This correlates with the observation that dislocation velocities in HEAs are lower than that in Cu at the same Schmid stress in the linear regime and on the same order as dislocation velocities in homogeneous metals at the same Schmid stress in the radiative damping regime. In general, these behaviors in HEAs are a result of the complex local chemical and energetic environment, which promotes meaningful dislocation waviness.",
+    "page": 22
+  },
+  {
+    "typer": "paragraph",
+    "text": "Ultimately, MD simulations, such as those presented in this work, are important to understand the influence of HEA composition on different aspects of dislocation motion. Data in this work could help increase the accuracy of higher length scale simulation methods, like DDD that requires the dislocation drag coefficient B as an input parameter, or phase-field simulations which require energy barriers for dislocation motion. For example, Zeng et al [53] showed that the yield stress increases with larger fluctuations of the SFE and the strength of HEAs can be improved by increasing the disorder in the chemical misfit. Moreover, this work shows that the largest difference between dislocation motion in pure metals and in HEAs is the order of magnitude difference in the critical shear stress necessary to initiate motion. Additional focus",
+    "page": 22
+  },
+  {
+    "typer": "paragraph",
     "text": "in this stage, in particular an understanding of the interplay between local chemistry and dislocation topology, would have an important impact on mechanistic models that aim to predict the yield strength of HEAs. For example, Varvenne et al [31, 32] developed and validated a mechanistic theory for the yield stress of random HEAs based on energetic interactions and dislocation line tension with a characteristic waviness. Antillon et al [41] observed CSRO in the CoFeNiTi HEA at various annealing temperatures and modified a model for yield strength in HEAs to include the effect of disrupting the CSRO regions. Finally, understanding dislocation motion in HEAs has a potential impact on the study of fracture resistance. Gludovatz et al [12] observed that the ductility of the Cantor alloy (CrMnFeCoNi) increased when the temperature decreased, which they hypothesized is due to the fast motion of partial dislocations, and the interaction between partial dislocations and other defects like twin boundaries and voids. Zhang et al [54] showed that the easy motion of partial dislocations, the formation of stacking-fault parallelepipeds, and their interaction, benefits the high strength and ductility in the Cantor alloy.",
     "page": 23
   },
@@ -468,6 +1026,74 @@
     "text": "Acknowledgments",
     "page": 23,
     "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "The authors acknowledge the University of Florida for financial support and the University of Florida Research Computing for providing computational resources that have contributed to the research results reported in this publication.",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "Data availability statement",
+    "page": 23,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "All data that support the findings of this study are included within the article.",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "ORCID iDs",
+    "page": 23,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "Yixi Shen  $ {}^{ID} $ https://orcid.org/0000-0002-6568-5907 Douglas E Spearot  $ {}^{ID} $ https://orcid.org/0000-0003-1875-6036",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "References",
+    "page": 23,
+    "block_label": "title"
+  },
+  {
+    "typer": "paragraph",
+    "text": "[1] Chen T K, Shun T T, Yeh J W and Wong M S 2004 Nanostructured nitride films of multi-element high-entropy alloys by reactive DC sputtering Surf. Coat. Technol. 188–189 193–200",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "[2] Hsu C-Y, Yeh J-W, Chen S-K and Shun T-T 2004 Wear resistance and high-temperature compression strength of Fcc CuCoNiCrAl Metall. Mater. Trans. A 35 1465–9",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "[3] Yeh J-W, Chen S-K, Lin S-J, Gan J-Y, Chin T-S, Shun T-T, Tsau C-H and Chang S-Y 2004 Nanostructured high-entropy alloys with multiple principal elements: novel alloy design concepts and outcomes Adv. Eng. Mater. 6 299–303",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "[4] Tomlin I A and Kaloshkin S D 2006 Recent progress in high-entropy alloys Ann. Chim. Sci. Mat. 38 633–48",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "[5] Senkov O N, Wilks G B, Scott J M and Miracle D B 2011 Mechanical properties of  $ Nb_{25}Mo_{25}Ta_{25}W_{25} $ and  $ V_{20}Nb_{20}Mo_{20}Ta_{20}W_{20} $ refractory high entropy alloys Intermetallics 19698–706",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "[6] Senkov O N, Wilks G B, Miracle D B, Chuang C P and Liaw P K 2010 Refractory high-entropy alloys Intermetallics 18 1758–65",
+    "page": 23
+  },
+  {
+    "typer": "paragraph",
+    "text": "[7] Miracle D, Miller J, Senkov O, Woodward C, Uchic M and Tiley J 2014 Exploration and development of high entropy alloys for structural applications Entropy 16 494–525",
+    "page": 23
   },
   {
     "typer": "paragraph",

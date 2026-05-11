@@ -95,6 +95,8 @@ def _invoke_plain_json_fallback(full_prompt: str) -> Dict[str, Any]:
 
 def extract_data(state: KnowMatState) -> Dict[str, Any]:
     """Perform the main LLM extraction and return the structured data."""
+    import time as _time
+
     paper_text = state.get("paper_text", "")
     original_paper_text = paper_text
     paper_text_path = state.get("paper_text_path")
@@ -107,9 +109,12 @@ def extract_data(state: KnowMatState) -> Dict[str, Any]:
         if ocr_items:
             from knowmat.pdf.figure_describer import inject_figure_descriptions
             logger.info("Injecting figure descriptions into paper_text...")
+            t0 = _time.time()
             try:
                 paper_text = inject_figure_descriptions(paper_text, ocr_items)
-                logger.info("✓ Figure descriptions injected.")
+                elapsed = _time.time() - t0
+                logger.info("✓ Figure descriptions injected in %.1fs.", elapsed)
+                print(f"   Figure descriptions: {elapsed:.1f}s")
             except Exception as exc:
                 logger.warning("Figure description injection failed: %s", exc, exc_info=True)
 
@@ -121,6 +126,8 @@ def extract_data(state: KnowMatState) -> Dict[str, Any]:
         system_prompt = system_prompt.strip() + "\n\n" + prompt_updates
 
     user_prompt = generate_user_prompt(paper_text)
+    input_chars = len(system_prompt) + len(user_prompt)
+    print(f"   Extraction input: ~{input_chars // 3} tokens")
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
@@ -131,6 +138,7 @@ def extract_data(state: KnowMatState) -> Dict[str, Any]:
     )
 
     structured_error: Exception | None = None
+    t_extract = _time.time()
     try:
         result = extraction_extractor.invoke({"messages": messages})
     except Exception as exc:
@@ -148,6 +156,7 @@ def extract_data(state: KnowMatState) -> Dict[str, Any]:
 
     responses = (result or {}).get("responses") or []
     if not responses:
+        print(f"   Extraction attempt 1: {_time.time() - t_extract:.1f}s (no responses, retrying)")
         try:
             fallback_result = extraction_extractor.invoke(full_prompt)
         except Exception as exc:
@@ -157,6 +166,8 @@ def extract_data(state: KnowMatState) -> Dict[str, Any]:
                 logger.warning("Structured fallback returned no responses: %s", exc)
             fallback_result = None
         responses = (fallback_result or {}).get("responses") or []
+    extraction_elapsed = _time.time() - t_extract
+    print(f"   Extraction LLM call: {extraction_elapsed:.1f}s")
 
     if not responses:
         logger.warning(

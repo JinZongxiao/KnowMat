@@ -172,6 +172,8 @@ def describe_figure_image(
 def inject_figure_descriptions(
     text: str,
     ocr_items: List[Dict[str, Any]],
+    *,
+    max_workers: int = 4,
 ) -> str:
     """Insert multimodal LLM descriptions above each figure caption in *text*.
 
@@ -182,12 +184,19 @@ def inject_figure_descriptions(
 
     Called from the extraction stage (not OCR), so every LLM call here is
     intentional and gated by ``settings.figure_description_enabled``.
+
+    LLM calls for individual figures run in parallel (up to *max_workers*
+    threads) to reduce wall-clock time.
     """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     normalize_figure_ocr_items(ocr_items)
     image_items = iter_resolved_figure_items(ocr_items)
     if not image_items:
         return text
 
+    # Collect valid items to describe
+    to_describe: List[Dict[str, Any]] = []
     for item in image_items:
         data = item.get("data", {})
         raw_path = data.get("image_path", "")
@@ -195,22 +204,48 @@ def inject_figure_descriptions(
         if not img_path.is_file():
             logger.debug("Figure image not found, skipping description injection: %s", img_path)
             continue
-
-        caption = data.get("caption", "")
         figure_num = data.get("figure_num", "")
-        description = describe_figure_image(img_path, caption=caption)
-        description = _sanitize_figure_description(description)
-        if not description:
+        if figure_num and f"> [Figure {figure_num} AI Description]:" in text:
             continue
+        to_describe.append(item)
+
+    if not to_describe:
+        return text
+
+    # Parallel LLM calls for figure descriptions
+    descriptions: Dict[int, str] = {}
+
+    def _describe(idx: int, item: Dict[str, Any]) -> tuple:
+        data = item.get("data", {})
+        img_path = Path(data.get("image_path", ""))
+        caption = data.get("caption", "")
+        desc = describe_figure_image(img_path, caption=caption)
+        desc = _sanitize_figure_description(desc)
+        return idx, desc
+
+    workers = min(max_workers, len(to_describe))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_describe, i, item): i for i, item in enumerate(to_describe)}
+        for future in as_completed(futures):
+            try:
+                idx, desc = future.result()
+                if desc:
+                    descriptions[idx] = desc
+            except Exception as exc:
+                logger.warning("Figure description failed: %s", exc)
+
+    # Insert descriptions into text (must be done sequentially to keep positions correct)
+    for idx in sorted(descriptions.keys()):
+        item = to_describe[idx]
+        data = item.get("data", {})
+        figure_num = data.get("figure_num", "")
+        description = descriptions[idx]
 
         label = f"Figure {figure_num}" if figure_num else "Figure"
         description_block = f"> [{label} AI Description]: {description}\n\n"
         if description_block.strip() in text:
             continue
-        if figure_num and f"> [Figure {figure_num} AI Description]:" in text:
-            continue
 
-        # Try to find the caption line in the text and insert above it
         if figure_num:
             pattern = re.compile(
                 r"((?:Fig\.?\s*|Figure\s*)" + re.escape(str(figure_num)) + r"[\s\.\:])",
@@ -226,7 +261,6 @@ def inject_figure_descriptions(
                 )
                 continue
 
-        # Fallback: append at end
         text = text + "\n\n" + description_block
 
     return text

@@ -21,13 +21,16 @@ _HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+)$")
 _HTML_TABLE_PATTERN = re.compile(
     r"<table\b[^>]*>.*?</table>", re.DOTALL | re.IGNORECASE
 )
-_SMALL_IMG_DIV_PATTERN = re.compile(
-    r'<div[^>]*>\s*<img\s+[^>]*width="(\d+)%"[^>]*/?>.*?</div>',
-    re.DOTALL | re.IGNORECASE,
-)
 _YOU_MAY_ALSO_LIKE_PATTERN = re.compile(
     r"##\s+You may also like.*?(?=\n##\s|\n#\s|\n[A-Z][a-z].*\n)",
     re.DOTALL | re.IGNORECASE,
+)
+_FIGURE_CAPTION_DIV_PATTERN = re.compile(
+    r'<div[^>]*>\s*((?:Fig(?:ure)?\.?\s*\d+)[^<]*)</div>',
+    re.IGNORECASE,
+)
+_FIGURE_NUM_PATTERN = re.compile(
+    r"(?:Fig(?:ure)?\.?\s*)(\d+[a-zA-Z]?)", re.IGNORECASE
 )
 
 
@@ -166,6 +169,32 @@ def _parse_markdown_blocks(
             i += 1
             continue
 
+        # Figure caption in <div> (PaddleOCR API format: <div>Figure N. ...</div>)
+        fig_cap_match = _FIGURE_CAPTION_DIV_PATTERN.match(line.strip())
+        if fig_cap_match:
+            cap_text = fig_cap_match.group(1).strip()
+            fig_num_match = _FIGURE_NUM_PATTERN.match(cap_text)
+            fig_num = fig_num_match.group(1) if fig_num_match else ""
+            if fig_num:
+                items.append({
+                    "typer": "image",
+                    "data": {
+                        "image_path": "",
+                        "caption": cap_text,
+                        "figure_num": fig_num,
+                    },
+                    "page": page_num,
+                    "block_label": "figure",
+                })
+            else:
+                items.append({
+                    "typer": "paragraph",
+                    "text": cap_text,
+                    "page": page_num,
+                })
+            i += 1
+            continue
+
         # Regular paragraph (collect consecutive non-empty non-special lines)
         para_lines = []
         while i < len(lines):
@@ -186,6 +215,8 @@ def _parse_markdown_blocks(
                     break
             if _HEADING_PATTERN.match(curr.strip()):
                 break
+            if _FIGURE_CAPTION_DIV_PATTERN.match(curr.strip()):
+                break
             para_lines.append(curr)
             i += 1
 
@@ -197,8 +228,6 @@ def _parse_markdown_blocks(
                 "text": text,
                 "page": page_num,
             })
-        elif not para_lines:
-            i += 1
 
     return items
 
@@ -276,7 +305,7 @@ def clean_api_markdown(text: str) -> str:
     """Clean PaddleOCR/MinerU API markdown output.
 
     - Remove journal boilerplate ("You may also like", etc.)
-    - Remove small image divs (width <= 10%)
+    - Remove all image references (figures are replaced by AI descriptions)
     - Convert simple HTML tables to markdown (keep complex ones as HTML)
     """
     from knowmat.pdf.html_cleaner import (
@@ -290,12 +319,14 @@ def clean_api_markdown(text: str) -> str:
     # 1. Strip "You may also like" section (heading + bullet list + images)
     result = _YOU_MAY_ALSO_LIKE_PATTERN.sub("", text)
 
-    # 2. Remove small image divs (width <= 10%)
-    def _remove_small_img(m: re.Match) -> str:
-        pct = int(m.group(1))
-        return "" if pct <= 10 else m.group(0)
-
-    result = _SMALL_IMG_DIV_PATTERN.sub(_remove_small_img, result)
+    # 2. Remove all image references (markdown ![](images/...) and HTML <div><img></div>)
+    result = re.sub(r"!\[[^\]]*\]\([^)]*\)\s*", "", result)
+    result = re.sub(
+        r'<div[^>]*>\s*<img\s+[^>]*/?>.*?</div>\s*',
+        "",
+        result,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
 
     # 3. Convert simple HTML tables to markdown
     def _convert_table(m: re.Match) -> str:

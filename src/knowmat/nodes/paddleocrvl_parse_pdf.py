@@ -1262,17 +1262,24 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
                 logger.debug("Could not read OCR sidecar %s: %s", sidecar_path, exc)
 
         render_dpi = _env_int("OCR_RENDER_DPI", 300)
+        # Detect API mode: images/ directory present means API-produced OCR
+        api_images_dir = source_path.parent / "images"
+        is_api_produced = api_images_dir.is_dir() and any(api_images_dir.iterdir())
         if sidecar_items:
+            if is_api_produced:
+                from knowmat.pdf.figure_items import promote_caption_paragraphs
+                promote_caption_paragraphs(sidecar_items)
             normalize_figure_ocr_items(sidecar_items)
-            source_pdf = _candidate_pdf_for_text_source(source_path)
-            if source_pdf is not None:
-                figures_dir = source_path.parent / "_ocr_cache" / "resolved_figures"
-                sidecar_items = _persist_figure_images(
-                    sidecar_items,
-                    str(source_pdf),
-                    figures_dir,
-                    render_dpi=render_dpi,
-                )
+            if not is_api_produced:
+                source_pdf = _candidate_pdf_for_text_source(source_path)
+                if source_pdf is not None:
+                    figures_dir = source_path.parent / "_ocr_cache" / "resolved_figures"
+                    sidecar_items = _persist_figure_images(
+                        sidecar_items,
+                        str(source_pdf),
+                        figures_dir,
+                        render_dpi=render_dpi,
+                    )
 
         doi_from_sidecar = extract_first_doi_from_ocr_items(sidecar_items)
         doi_from_text = extract_first_doi(cleaned_text[:5000])
@@ -1280,7 +1287,10 @@ def parse_pdf_with_paddleocrvl(state: KnowMatState) -> dict:
         if doi and doi not in cleaned_text:
             cleaned_text = f"DOI: {doi}\n\n{cleaned_text}"
 
-        if sidecar_items and _append_missing_ocr_paragraphs_enabled():
+        if is_api_produced:
+            from knowmat.pdf.paddleocr_api_result_converter import clean_api_markdown
+            cleaned_text = clean_api_markdown(cleaned_text)
+        elif sidecar_items and _append_missing_ocr_paragraphs_enabled():
             cleaned_text = _append_missing_paragraph_hints(cleaned_text, sidecar_items)
 
         final_md_path: Optional[Path] = None
