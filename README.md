@@ -14,7 +14,8 @@ KnowMat is an AI-driven, agentic pipeline that automatically extracts structured
 
 - **Research-grade batch processing**: Process entire directories of PDF/TXT files; supports **two-stage** workflow: run OCR only (`--ocr-only`) first, then batch LLM extraction
 - **High accuracy**: Multi-agent architecture with up to 3 rounds of extraction/evaluation iteration
-- **Dual-engine OCR**: `paddleocr-api`的 PaddleOCR-VL 1.5 (layout + reading order) + PP-StructureV3 (complex tables & formulas); optional MinerU cloud API mode (`--mineru-api`)
+- **Dual-engine OCR**: PaddleOCR-VL 1.5 (layout + reading order) + PP-StructureV3 (complex tables & formulas); optional MinerU cloud API mode (`--mineru-api`); optional PaddleOCR cloud API mode (`--paddleocr-api`)
+- **Batch parallel processing**: `--batch` mode for large-scale parallel OCR submission + LLM extraction with persistent state tracking, crash recovery, and multi-key rotation
 - **Formula & table enhancement**: Precise HTML table extraction and high-fidelity LaTeX formulas (auto-fixes chemical subscripts)
 - **Two-stage validation**: Rule aggregation + LLM hallucination correction
 - **Property standardization**: Auto-mapping attribute names to standard forms
@@ -163,8 +164,10 @@ python -m knowmat --help
 | `MINERU_API_TIMEOUT_SEC` | No | `600` | MinerU polling timeout (seconds) |
 | `MINERU_LANGUAGE` | No | `en` | Document language for MinerU |
 | `PADDLEOCR_API_TOKEN` | No | - | PaddleOCR cloud API token (enables `--paddleocr-api`) |
+| `PADDLEOCR_API_TOKENS` | No | - | Multiple PaddleOCR tokens, comma-separated (for `--batch` mode) |
 | `PADDLEOCR_API_URL` | No | `https://paddleocr.aistudio-app.com/api/v2/ocr/jobs` | PaddleOCR API endpoint |
 | `PADDLEOCR_API_TIMEOUT_SEC` | No | `600` | PaddleOCR polling timeout (seconds) |
+| `MINERU_API_KEYS` | No | - | Multiple MinerU keys, comma-separated (for `--batch` mode) |
 
 ### OCR Tuning (Optional)
 
@@ -285,6 +288,71 @@ The `--mineru-api` flag activates MinerU API mode. Without this flag, the local 
 
 **Note:** MinerU API requires network access and has usage limits based on your API plan.
 
+### Batch Parallel Mode (Large-Scale Processing)
+
+For processing tens of thousands of PDFs, KnowMat provides a `--batch` mode that uses an asyncio event loop with persistent SQLite state tracking. This enables:
+
+- **Fire-and-forget OCR submission**: Submit many PDFs concurrently to the cloud OCR API without blocking
+- **Crash recovery**: On restart, automatically resumes from the SQLite state database
+- **Multi-key rotation**: Distribute load across multiple API tokens with adaptive rate-limit cooldown
+- **Streaming LLM processing**: As soon as any OCR result completes, immediately start LLM extraction in parallel
+
+**Setup (multi-key):**
+
+Add comma-separated tokens to `.env`:
+
+```bash
+# Multiple PaddleOCR API tokens (comma-separated)
+PADDLEOCR_API_TOKENS=token_a,token_b,token_c
+
+# Or use single token (backwards compatible)
+PADDLEOCR_API_TOKEN=your_single_token
+
+# Multiple MinerU keys (comma-separated)
+MINERU_API_KEYS=key1,key2
+```
+
+**Usage:**
+
+```bash
+# Large-scale parallel processing with PaddleOCR API
+python -m knowmat --input-folder path/to/papers --paddleocr-api --batch \
+    --max-ocr-concurrent 30 --max-llm-concurrent 8
+
+# With MinerU API
+python -m knowmat --input-folder path/to/papers --mineru-api --batch \
+    --max-ocr-concurrent 20 --max-llm-concurrent 4
+
+# Resume after crash (automatically detects existing state DB)
+python -m knowmat --input-folder path/to/papers --paddleocr-api --batch
+
+# Custom state database path
+python -m knowmat --input-folder path/to/papers --paddleocr-api --batch \
+    --batch-db /path/to/state.db
+
+# Check processing status via SQLite
+sqlite3 path/to/papers/.knowmat_batch.db \
+    "SELECT status, count(*) FROM tasks GROUP BY status"
+```
+
+**Batch mode CLI arguments:**
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--batch` | Enable batch parallel mode (requires `--paddleocr-api` or `--mineru-api`) | `False` |
+| `--max-ocr-concurrent` | Max concurrent OCR API submissions in flight | `20` |
+| `--max-llm-concurrent` | Max concurrent LLM extraction threads | `4` |
+| `--batch-db` | Path to SQLite state database | `<input-folder>/.knowmat_batch.db` |
+| `--ocr-poll-interval` | Seconds between OCR job poll cycles | `10` |
+
+**Progress output:**
+
+```
+[BATCH] 12:34:56 | done: 450/10000 | ocr_submitted: 30 | llm: 8 | pending: 9512 | failed: 0 | rate: 2.1/min | keys: 3/3 healthy
+```
+
+**Note:** `--batch` mode is completely independent from the default local-OCR streaming mode. Without `--batch`, the original `ThreadPoolExecutor`-based workflow runs unchanged.
+
 ### Advanced Options
 
 ```bash
@@ -316,6 +384,11 @@ python -m knowmat \
 | `--evaluation-model` | Evaluation model | `LLM_MODEL` |
 | `--manager-model` | Two-stage manager model | `LLM_MODEL` |
 | `--flagging-model` | Flagging model | `LLM_MODEL` |
+| `--batch` | Enable batch parallel mode | `False` |
+| `--max-ocr-concurrent` | (Batch) Max concurrent OCR submissions | `20` |
+| `--max-llm-concurrent` | (Batch) Max concurrent LLM threads | `4` |
+| `--batch-db` | (Batch) SQLite state DB path | `<input>/.knowmat_batch.db` |
+| `--ocr-poll-interval` | (Batch) OCR poll interval (seconds) | `10` |
 
 ### Python API
 
@@ -415,9 +488,14 @@ KnowMat/
 │   │   ├── extraction.py
 │   │   ├── evaluation.py
 │   │   └── ...
-│   └── pdf/                  # PDF/OCR submodule
-│       ├── ocr_engine.py
-│       └── ...
+│   ├── pdf/                  # PDF/OCR submodule
+│   │   ├── ocr_engine.py
+│   │   └── ...
+│   └── batch/                # Batch parallel processing
+│       ├── batch_runner.py   # Asyncio orchestrator
+│       ├── task_store.py     # SQLite state persistence
+│       ├── key_pool.py       # Multi-key rotation
+│       └── ocr_dispatcher.py # Async OCR lifecycle
 ├── scripts/                  # Utility scripts
 │   └── download_paddleocrvl_models.py
 ├── prompts/                  # LLM prompt templates

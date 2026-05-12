@@ -14,7 +14,8 @@ KnowMat 是一个 AI 驱动的 Agentic 流水线，可将非结构化科学文�
 
 - **科研级批处理**：支持整目录批量处理 PDF/TXT 文件；支持**两阶段**工作流：先仅跑 OCR（`--ocr-only`），再统一跑大模型抽取
 - **高准确度**：多代理架构，支持最多 3 轮抽取/评估迭代优化
-- **双引擎高精度 OCR**：PaddleOCR-VL 1.5（宏观版面与阅读顺序）+ PP-StructureV3（微观复杂表格与公式精修）；可选 MinerU 云端 API 模式（`--mineru-api`）
+- **双引擎高精度 OCR**：PaddleOCR-VL 1.5（宏观版面与阅读顺序）+ PP-StructureV3（微观复杂表格与公式精修）；可选 MinerU 云端 API 模式（`--mineru-api`）；可选 PaddleOCR 云端 API 模式（`--paddleocr-api`）
+- **大规模并行批处理**：`--batch` 模式支持数万篇 PDF 并行 OCR 提交 + LLM 抽取，持久化状态追踪、崩溃恢复、多 key 自适应轮转
 - **公式与表格增强**：精准提取复杂 HTML 跨行表格与高保真 LaTeX 公式（自动修复化学式上下标）
 - **两阶段校验**：规则聚合 + LLM 幻觉修正
 - **属性标准化**：自动将属性名称映射为标准形式
@@ -164,8 +165,10 @@ python -m knowmat --help
 | `MINERU_API_TIMEOUT_SEC` | 否 | `600` | MinerU 轮询超时时间（秒） |
 | `MINERU_LANGUAGE` | 否 | `en` | MinerU 文档语言 |
 | `PADDLEOCR_API_TOKEN` | 否 | - | PaddleOCR 云端 API Token（启用 `--paddleocr-api`） |
+| `PADDLEOCR_API_TOKENS` | 否 | - | 多个 PaddleOCR Token，逗号分隔（用于 `--batch` 模式） |
 | `PADDLEOCR_API_URL` | 否 | `https://paddleocr.aistudio-app.com/api/v2/ocr/jobs` | PaddleOCR API 地址 |
 | `PADDLEOCR_API_TIMEOUT_SEC` | 否 | `600` | PaddleOCR 轮询超时时间（秒） |
+| `MINERU_API_KEYS` | 否 | - | 多个 MinerU Key，逗号分隔（用于 `--batch` 模式） |
 
 ### OCR 调优（可选）
 
@@ -284,6 +287,71 @@ python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api --ski
 python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api
 ```
 
+### 大规模并行批处理模式
+
+当需要处理数万篇 PDF 时，KnowMat 提供 `--batch` 模式，基于 asyncio 事件循环 + SQLite 持久化状态追踪。核心能力：
+
+- **即发即走 OCR 提交**：并发提交大量 PDF 到云端 OCR API，无需阻塞等待
+- **崩溃恢复**：重启后自动从 SQLite 状态数据库恢复，已提交的远端任务继续轮询
+- **多 key 轮转**：多个 API token 自适应负载均衡，限流时自动冷却切换
+- **流式 LLM 处理**：任何一篇 OCR 完成即刻启动 LLM 抽取，与其他 OCR/LLM 任务并行
+
+**配置（多 key）：**
+
+在 `.env` 中使用逗号分隔配置多个 token：
+
+```bash
+# 多个 PaddleOCR API token（逗号分隔）
+PADDLEOCR_API_TOKENS=token_a,token_b,token_c
+
+# 或使用单个 token（向后兼容）
+PADDLEOCR_API_TOKEN=your_single_token
+
+# 多个 MinerU key（逗号分隔）
+MINERU_API_KEYS=key1,key2
+```
+
+**使用方法：**
+
+```bash
+# 大规模并行处理（PaddleOCR API）
+python -m knowmat --input-folder path/to/papers --paddleocr-api --batch \
+    --max-ocr-concurrent 30 --max-llm-concurrent 8
+
+# 使用 MinerU API
+python -m knowmat --input-folder path/to/papers --mineru-api --batch \
+    --max-ocr-concurrent 20 --max-llm-concurrent 4
+
+# 崩溃后恢复（自动检测已有状态 DB）
+python -m knowmat --input-folder path/to/papers --paddleocr-api --batch
+
+# 自定义状态数据库路径
+python -m knowmat --input-folder path/to/papers --paddleocr-api --batch \
+    --batch-db /path/to/state.db
+
+# 查看处理状态
+sqlite3 path/to/papers/.knowmat_batch.db \
+    "SELECT status, count(*) FROM tasks GROUP BY status"
+```
+
+**Batch 模式 CLI 参数：**
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--batch` | 启用大规模并行模式（需配合 `--paddleocr-api` 或 `--mineru-api`） | `False` |
+| `--max-ocr-concurrent` | 最大并发 OCR 提交数（同时在途量） | `20` |
+| `--max-llm-concurrent` | 最大并发 LLM 抽取线程数 | `4` |
+| `--batch-db` | SQLite 状态数据库路径 | `<input-folder>/.knowmat_batch.db` |
+| `--ocr-poll-interval` | OCR 任务轮询间隔（秒） | `10` |
+
+**进度输出示例：**
+
+```
+[BATCH] 12:34:56 | done: 450/10000 | ocr_submitted: 30 | llm: 8 | pending: 9512 | failed: 0 | rate: 2.1/min | keys: 3/3 healthy
+```
+
+**注意：** `--batch` 模式与默认的本地 OCR 流式处理完全独立。不加 `--batch` 时，原有基于 `ThreadPoolExecutor` 的工作流不受任何影响。
+
 ### 进阶参数
 
 ```bash
@@ -315,6 +383,11 @@ python -m knowmat \
 | `--evaluation-model` | 评估模型 | `LLM_MODEL` |
 | `--manager-model` | 二阶段校验模型 | `LLM_MODEL` |
 | `--flagging-model` | 最终质量评估模型 | `LLM_MODEL` |
+| `--batch` | 启用大规模并行模式 | `False` |
+| `--max-ocr-concurrent` | (Batch) 最大并发 OCR 提交数 | `20` |
+| `--max-llm-concurrent` | (Batch) 最大并发 LLM 线程数 | `4` |
+| `--batch-db` | (Batch) SQLite 状态数据库路径 | `<input>/.knowmat_batch.db` |
+| `--ocr-poll-interval` | (Batch) OCR 轮询间隔（秒） | `10` |
 
 ### Python API
 
@@ -414,9 +487,14 @@ KnowMat/
 │   │   ├── extraction.py
 │   │   ├── evaluation.py
 │   │   └── ...
-│   └── pdf/                  # PDF/OCR 子模块
-│       ├── ocr_engine.py
-│       └── ...
+│   ├── pdf/                  # PDF/OCR 子模块
+│   │   ├── ocr_engine.py
+│   │   └── ...
+│   └── batch/                # 大规模并行批处理
+│       ├── batch_runner.py   # asyncio 编排器
+│       ├── task_store.py     # SQLite 状态持久化
+│       ├── key_pool.py       # 多 key 轮转
+│       └── ocr_dispatcher.py # 异步 OCR 生命周期管理
 ├── scripts/                  # 工具脚本
 │   └── download_paddleocrvl_models.py
 ├── prompts/                  # LLM 提示词模板

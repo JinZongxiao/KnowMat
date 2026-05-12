@@ -131,6 +131,37 @@ def main(argv: list[str] | None = None) -> None:
         help="Remove all _ocr_cache directories under the input folder before processing.",
     )
 
+    # Batch parallel mode arguments
+    parser.add_argument(
+        "--batch",
+        action="store_true",
+        help="Enable batch parallel mode: async OCR submission + persistent state + crash recovery. "
+             "Requires --paddleocr-api or --mineru-api.",
+    )
+    parser.add_argument(
+        "--max-ocr-concurrent",
+        type=int,
+        default=20,
+        help="(Batch mode) Max concurrent OCR API submissions in flight.",
+    )
+    parser.add_argument(
+        "--max-llm-concurrent",
+        type=int,
+        default=4,
+        help="(Batch mode) Max concurrent LLM extraction threads.",
+    )
+    parser.add_argument(
+        "--batch-db",
+        default=None,
+        help="(Batch mode) Path to SQLite state database. Default: <input-folder>/.knowmat_batch.db",
+    )
+    parser.add_argument(
+        "--ocr-poll-interval",
+        type=float,
+        default=10.0,
+        help="(Batch mode) Seconds between OCR job poll cycles.",
+    )
+
     args = parser.parse_args(argv)
     if args.ocr_log_level:
         os.environ["PADDLE_PDX_LOG_LEVEL"] = args.ocr_log_level
@@ -171,6 +202,40 @@ def main(argv: list[str] | None = None) -> None:
     extraction_output_dir = args.output_dir if args.output_dir else settings.output_dir
     print(f"Input (raw + OCR intermediates): {input_folder}")
     print(f"Extraction output:               {extraction_output_dir}")
+
+    # --- Batch parallel mode ---
+    if args.batch:
+        if not (args.paddleocr_api or args.mineru_api):
+            print("Error: --batch requires --paddleocr-api or --mineru-api (cloud OCR API mode).")
+            return
+
+        import asyncio
+        from knowmat.batch.batch_runner import BatchRunner
+
+        vendor = "paddleocr" if args.paddleocr_api else "mineru"
+        db_path = Path(args.batch_db) if args.batch_db else None
+
+        runner = BatchRunner(
+            input_folder=input_folder,
+            output_dir=Path(extraction_output_dir),
+            vendor=vendor,
+            db_path=db_path,
+            max_ocr_concurrent=args.max_ocr_concurrent,
+            max_llm_concurrent=args.max_llm_concurrent,
+            max_retries=3,
+            poll_interval=args.ocr_poll_interval,
+            max_runs=args.max_runs,
+            full_pipeline=args.full_pipeline,
+            enable_property_standardization=args.enable_property_standardization,
+            subfield_model=getattr(args, "subfield_model", None),
+            extraction_model=getattr(args, "extraction_model", None),
+            evaluation_model=getattr(args, "evaluation_model", None),
+            manager_model=getattr(args, "manager_model", None),
+            flagging_model=getattr(args, "flagging_model", None),
+        )
+
+        asyncio.run(runner.run())
+        return
 
     pdf_files = sorted(
         [p for p in input_folder.iterdir() if p.is_file() and p.suffix.lower() == ".pdf"],
