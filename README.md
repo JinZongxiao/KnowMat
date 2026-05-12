@@ -14,12 +14,11 @@ KnowMat is an AI-driven, agentic pipeline that automatically extracts structured
 
 - **Research-grade batch processing**: Process entire directories of PDF/TXT files; supports **two-stage** workflow: run OCR only (`--ocr-only`) first, then batch LLM extraction
 - **High accuracy**: Multi-agent architecture with up to 3 rounds of extraction/evaluation iteration
-- **Dual-engine OCR**: PaddleOCR-VL 1.5 (layout + reading order) + PP-StructureV3 (complex tables & formulas); optional MinerU cloud API mode (`--mineru-api`)
+- **Dual-engine OCR**: `paddleocr-api`的 PaddleOCR-VL 1.5 (layout + reading order) + PP-StructureV3 (complex tables & formulas); optional MinerU cloud API mode (`--mineru-api`)
 - **Formula & table enhancement**: Precise HTML table extraction and high-fidelity LaTeX formulas (auto-fixes chemical subscripts)
 - **Two-stage validation**: Rule aggregation + LLM hallucination correction
 - **Property standardization**: Auto-mapping attribute names to standard forms
 - **Quality assurance**: Confidence scoring, human review flags & guidelines
-- **ML-ready output**: Structured JSON for database入库 and modeling
 
 ---
 
@@ -212,6 +211,42 @@ python -m knowmat --input-folder path/to/papers
 
 This generates `.md` files from PDFs first, then processes them with LLM.
 
+### PaddleOCR Cloud API Mode
+
+KnowMat supports using the [PaddleOCR cloud API](https://paddleocr.aistudio-app.com) as an OCR backend. This provides the same PaddleOCR-VL + PP-StructureV3 pipeline as the local mode, but runs on cloud infrastructure (no local GPU needed).
+
+**Setup:**
+
+Add your PaddleOCR API token to `.env`:
+
+```bash
+PADDLEOCR_API_TOKEN="your_paddleocr_api_token"
+PADDLEOCR_API_URL=https://paddleocr.aistudio-app.com/api/v2/ocr/jobs
+PADDLEOCR_API_TIMEOUT_SEC=600
+```
+
+**Usage:**
+
+```bash
+# OCR only with PaddleOCR cloud API
+python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api
+
+# Full pipeline with PaddleOCR cloud API
+python -m knowmat --input-folder path/to/papers --paddleocr-api
+
+# Force re-run (ignore cache)
+python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api --skip-cached-ocr
+```
+
+**PP-StructureV3 formula refinement for MinerU:**
+
+When both `PADDLEOCR_API_TOKEN` and `MINERU_API_KEY` are configured, using `--mineru-api` will automatically apply PP-StructureV3 formula/table refinement on MinerU results:
+
+```bash
+# MinerU primary OCR + PP-StructureV3 formula refinement
+python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api
+```
+
 ### MinerU Cloud API Mode
 
 KnowMat supports using [MinerU](https://mineru.net) cloud API as an alternative OCR backend. MinerU provides high-quality PDF parsing with VLM-based layout recognition, producing better results for complex tables, formulas, and figures.
@@ -249,42 +284,6 @@ The `--mineru-api` flag activates MinerU API mode. Without this flag, the local 
 - Supports complex multi-column layouts
 
 **Note:** MinerU API requires network access and has usage limits based on your API plan.
-
-### PaddleOCR Cloud API Mode
-
-KnowMat also supports using the [PaddleOCR cloud API](https://paddleocr.aistudio-app.com) as an OCR backend. This provides the same PaddleOCR-VL + PP-StructureV3 pipeline as the local mode, but runs on cloud infrastructure (no local GPU needed).
-
-**Setup:**
-
-Add your PaddleOCR API token to `.env`:
-
-```bash
-PADDLEOCR_API_TOKEN="your_paddleocr_api_token"
-PADDLEOCR_API_URL=https://paddleocr.aistudio-app.com/api/v2/ocr/jobs
-PADDLEOCR_API_TIMEOUT_SEC=600
-```
-
-**Usage:**
-
-```bash
-# OCR only with PaddleOCR cloud API
-python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api
-
-# Full pipeline with PaddleOCR cloud API
-python -m knowmat --input-folder path/to/papers --paddleocr-api
-
-# Force re-run (ignore cache)
-python -m knowmat --input-folder path/to/papers --ocr-only --paddleocr-api --skip-cached-ocr
-```
-
-**PP-StructureV3 formula refinement for MinerU:**
-
-When both `PADDLEOCR_API_TOKEN` and `MINERU_API_KEY` are configured, using `--mineru-api` will automatically apply PP-StructureV3 formula/table refinement on MinerU results:
-
-```bash
-# MinerU primary OCR + PP-StructureV3 formula refinement
-python -m knowmat --input-folder path/to/papers --ocr-only --mineru-api
-```
 
 ### Advanced Options
 
