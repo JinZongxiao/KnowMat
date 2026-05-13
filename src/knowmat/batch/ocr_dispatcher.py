@@ -219,7 +219,7 @@ class OCRDispatcher:
 
         key = self._get_key_by_id(key_id)
         client = MineruPrecisionClient(key.token)
-        status, results = client.poll_batch(batch_id, timeout_sec=0, poll_interval=0)
+        status, results = client.poll_batch(batch_id)
         if status == "done" and results:
             return "done", results[0].get("full_zip_url")
         elif status == "failed":

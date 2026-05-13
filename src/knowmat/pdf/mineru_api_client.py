@@ -137,6 +137,75 @@ class MineruPrecisionClient:
 
         return self._poll_batch(batch_id)
 
+    def submit_file(
+        self,
+        pdf_path: Path,
+        *,
+        model_version: str = "vlm",
+        is_ocr: bool = True,
+        enable_formula: bool = True,
+        enable_table: bool = True,
+        language: str = "en",
+    ) -> tuple:
+        """Upload a PDF and return (batch_id, batch_data) without polling.
+
+        Used by the batch dispatcher which handles polling separately.
+        """
+        file_name = pdf_path.name
+        logger.info("[MinerU API] Submitting %s (%.1f MB)...", file_name, pdf_path.stat().st_size / 1e6)
+
+        file_meta: Dict[str, Any] = {"name": file_name, "is_ocr": is_ocr}
+        batch_body: Dict[str, Any] = {
+            "files": [file_meta],
+            "model_version": model_version,
+            "enable_formula": enable_formula,
+            "enable_table": enable_table,
+            "language": language,
+        }
+
+        resp = _json_request(
+            f"{self.base_url}/api/v4/file-urls/batch",
+            method="POST",
+            data=batch_body,
+            headers=self._headers(),
+        )
+        if resp.get("code") != 0:
+            raise MineruAPIError(f"file-urls/batch failed: {resp.get('msg', resp)}")
+
+        batch_data = resp["data"]
+        batch_id = batch_data["batch_id"]
+        file_urls = batch_data.get("file_urls", [])
+        if not file_urls:
+            raise MineruAPIError("No file_urls returned from batch endpoint")
+
+        upload_url = file_urls[0]
+        _put_binary(upload_url, pdf_path)
+        logger.info("[MinerU API] Submitted. batch_id=%s", batch_id)
+
+        return batch_id, batch_data
+
+    def poll_batch(self, batch_id: str) -> tuple:
+        """Single non-blocking poll. Returns (status, results_list).
+
+        status is one of: 'done', 'failed', 'running'.
+        results_list contains task dicts when status is 'done'.
+        Used by the batch dispatcher for periodic polling.
+        """
+        url = f"{self.base_url}/api/v4/extract-results/batch/{batch_id}"
+        resp = _json_request(url, headers=self._headers(), timeout=30)
+        if resp.get("code") != 0:
+            raise MineruAPIError(f"Batch poll error: {resp.get('msg', resp)}")
+
+        results = resp.get("data", {}).get("extract_result", [])
+        if results:
+            task = results[0]
+            state = task.get("state", "")
+            if state == "done":
+                return "done", results
+            if state == "failed":
+                return "failed", results
+        return "running", []
+
     def _poll_batch(self, batch_id: str, timeout_sec: float = 600, poll_interval: float = 5) -> Dict[str, Any]:
         """Poll batch results until done or timeout."""
         url = f"{self.base_url}/api/v4/extract-results/batch/{batch_id}"
