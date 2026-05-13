@@ -28,8 +28,8 @@ KnowMat is an AI-driven, agentic pipeline that automatically extracts structured
 ### Prerequisites
 
 1. **Python 3.11**
-2. **OpenAI-compatible LLM API Key** (e.g., ERNIE/Qianfan)
-3. **LangChain API Key** (optional, for LangSmith tracing)
+2. **OpenAI-compatible LLM API Key** (e.g., MiniMax、ERNIE/Qianfan)
+3. **OCR**: PaddleOCR 云端 API token 或 MinerU API key（推荐），或 NVIDIA GPU 用于本地推理
 
 ### Step 1: Clone the Repository
 
@@ -38,60 +38,71 @@ git clone https://github.com/shiyuasuka/KnowMat.git
 cd KnowMat
 ```
 
-### Step 2: Install Environment (Select Your Platform)
+### Step 2: Install Environment
 
 ---
 
-#### macOS (Recommended: pip)
+#### Option A: Cloud OCR API（推荐 — 无需 GPU）
 
-macOS has no NVIDIA GPU, uses CPU mode.
+使用 PaddleOCR 云端 API 或 MinerU API 进行 PDF 解析，无需本地 GPU 和模型下载。
+
+**使用 venv（macOS / Linux / Windows）：**
 
 ```bash
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate   # Windows: venv\Scripts\activate
 
-# Install project and dependencies
 pip install -e .
 pip install -r requirements.txt
-
-# Download OCR models
-python scripts/download_paddleocrvl_models.py --model-dir models/paddleocrvl1_5
 ```
+
+**使用 Conda：**
+
+```bash
+conda env create -f environment.yml
+conda activate KnowMat
+```
+
+> 无需下载 OCR 模型 — OCR 在云端运行。
 
 ---
 
-#### Windows / Linux (Recommended: Conda)
+#### Option B: Local GPU OCR（需要 NVIDIA GPU）
 
-**GPU mode (NVIDIA GPU):**
+在本地使用 PaddleOCR-VL 进行 GPU 推理，适合离线环境或大规模本地处理。
+
+**使用 Conda（推荐）：**
 
 ```bash
-# Create and activate environment
 conda env create -f environment.yml
 conda activate KnowMat
 
-# Install Paddle GPU dependencies
+# 安装 Paddle GPU 运行时
 pip uninstall -y paddlepaddle paddlepaddle-gpu
 pip install -r requirements-gpu.txt -i https://www.paddlepaddle.org.cn/packages/stable/cu129/
 conda install nvidia::cudnn cuda-version=12 -y
 
-# Download OCR models
+# 下载 OCR 模型
 python scripts/download_paddleocrvl_models.py --model-dir models/paddleocrvl1_5
 ```
 
-**CPU mode (no NVIDIA GPU):**
+**使用 venv：**
 
 ```bash
-# Create and activate environment
-conda env create -f environment.yml
-conda activate KnowMat
+python -m venv venv
+source venv/bin/activate
 
-# Install Paddle CPU dependencies
-pip install -r requirements-cpu.txt
+pip install -e .
+pip install -r requirements.txt
 
-# Download OCR models
+# 安装 Paddle GPU 运行时
+pip install -r requirements-gpu.txt -i https://www.paddlepaddle.org.cn/packages/stable/cu129/
+
+# 下载 OCR 模型
 python scripts/download_paddleocrvl_models.py --model-dir models/paddleocrvl1_5
 ```
+
+> **注意**: 本地 OCR 仅支持 NVIDIA GPU（需要 CUDA）。不再支持 CPU-only 本地推理 — 无 GPU 环境请使用 Option A 的云端 API 模式。
 
 ---
 
@@ -106,12 +117,17 @@ Edit `.env` with your API credentials:
 ```bash
 # LLM API Configuration
 LLM_API_KEY="your_llm_api_key"
-LLM_BASE_URL="https://your-openai-compatible-endpoint.com/v2"
-LLM_MODEL="your_model_name"
+LLM_BASE_URL="https://api.minimaxi.com/v1"
+LLM_MODEL="MiniMax-M2.7"
 
-# PaddleOCR-VL Configuration
-PADDLEOCRVL_MODEL_DIR=models/paddleocrvl1_5
-PADDLEOCRVL_VERSION=1.5
+# Cloud OCR API (Option A 必填其一)
+PADDLEOCR_API_TOKEN="your_paddleocr_api_token"
+# 或
+MINERU_API_KEY="your_mineru_api_key"
+
+# Local GPU OCR (Option B 必填)
+# PADDLEOCRVL_MODEL_DIR=models/paddleocrvl1_5
+# PADDLEOCRVL_VERSION=1.5
 
 # Optional: LangSmith tracing
 # LANGCHAIN_API_KEY="your_langchain_api_key"
@@ -140,8 +156,7 @@ python -m knowmat --help
 |------|---------|
 | `environment.yml` | Conda full environment definition |
 | `requirements.txt` | pip base dependencies |
-| `requirements-gpu.txt` | GPU Paddle dependencies (NVIDIA) |
-| `requirements-cpu.txt` | CPU Paddle dependencies |
+| `requirements-gpu.txt` | GPU Paddle dependencies (NVIDIA, Option B only) |
 | `pyproject.toml` | Project metadata |
 
 ---

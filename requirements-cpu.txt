@@ -1,8 +1,0 @@
-# KnowMat CPU Paddle runtime overlay
-# Installation order:
-#   1. pip install -r requirements.txt
-#   2. pip install -r requirements-cpu.txt
-#
-# For Conda users who already created `environment.yml`, only step 2 is needed.
-
-paddlepaddle>=3.0.0

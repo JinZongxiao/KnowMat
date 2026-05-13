@@ -295,9 +295,11 @@ def _validate_paddle_ocr_runtime() -> None:
             gpu_pkg,
         )
     else:
-        logger.warning(
-            "Paddle OCR runtime is CPU-only (paddlepaddle=%s). Install paddlepaddle-gpu to enable GPU OCR.",
-            cpu_pkg or "not installed",
+        raise RuntimeError(
+            "Local OCR requires an NVIDIA GPU with paddlepaddle-gpu installed. "
+            "CPU-only local OCR is no longer supported. "
+            "Use --paddleocr-api or --mineru-api for cloud-based OCR without a GPU, "
+            "or install paddlepaddle-gpu for local GPU inference."
         )
 
 

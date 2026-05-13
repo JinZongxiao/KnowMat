@@ -288,6 +288,30 @@ def main(argv: list[str] | None = None) -> None:
     # 强制重跑时对所有 PDF 重新 OCR；否则仅对尚无 .md/.txt 的 PDF 做 OCR
     pdfs_missing_txt = list(pdf_files) if args.force_rerun else [p for p in pdf_files if p.stem not in txt_by_stem]
 
+    # Guard: local OCR requires NVIDIA GPU — reject CPU-only environments early
+    if pdfs_missing_txt and not (args.paddleocr_api or args.mineru_api):
+        try:
+            import paddle  # type: ignore
+            if not paddle.device.is_compiled_with_cuda():
+                print(
+                    "Error: Local OCR requires an NVIDIA GPU (paddlepaddle-gpu with CUDA). "
+                    "CPU-only local OCR is no longer supported.\n"
+                    "Solutions:\n"
+                    "  1. Use --paddleocr-api for cloud OCR (recommended, no GPU needed)\n"
+                    "  2. Use --mineru-api for MinerU cloud OCR\n"
+                    "  3. Install paddlepaddle-gpu on a machine with NVIDIA GPU"
+                )
+                return
+        except ImportError:
+            print(
+                "Error: PaddlePaddle is not installed. Local OCR is unavailable.\n"
+                "Solutions:\n"
+                "  1. Use --paddleocr-api for cloud OCR (recommended, no GPU needed)\n"
+                "  2. Use --mineru-api for MinerU cloud OCR\n"
+                "  3. Install paddlepaddle-gpu: pip install -r requirements-gpu.txt"
+            )
+            return
+
     if not existing_txt_files and not pdfs_missing_txt:
         print(f"Error: No text/markdown files available for processing in: {input_folder}")
         return

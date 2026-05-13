@@ -87,10 +87,9 @@ dependencies:
       - torch==2.8.0
       - torchvision==0.23.0
 
-# Paddle runtime is separate from the base environment.
-# Choose exactly one runtime after `conda env create -f environment.yml`:
-#   CPU: `pip install -r requirements-cpu.txt`
-#   GPU: `pip uninstall -y paddlepaddle paddlepaddle-gpu`
-#        `pip install -r requirements-gpu.txt -i https://www.paddlepaddle.org.cn/packages/stable/cu129/`
-#        `conda install nvidia::cudnn cuda-version=12`
+# Local GPU OCR (Option B): install Paddle GPU runtime after creating the environment.
+# Cloud API mode (Option A) does NOT need this step.
+#   pip uninstall -y paddlepaddle paddlepaddle-gpu
+#   pip install -r requirements-gpu.txt -i https://www.paddlepaddle.org.cn/packages/stable/cu129/
+#   conda install nvidia::cudnn cuda-version=12
 # See docs/ocr-cudnn64_9-fix.md and docs/platforms.md for details.
