@@ -86,6 +86,14 @@ class OCRDispatcher:
                     )
                     # Leave as PENDING so it gets picked up again
                     return False
+                elif _is_transient_error(exc):
+                    self._key_pool.release(key.key_id, success=False)
+                    logger.warning(
+                        "Transient error for %s on key %s, will retry: %s",
+                        task.task_id, key.key_id, error_msg[:200],
+                    )
+                    # Leave as PENDING for retry
+                    return False
                 else:
                     self._key_pool.release(key.key_id, success=False)
                     self._store.mark_failed(task.task_id, f"OCR submit error: {error_msg}")
@@ -319,7 +327,20 @@ class OCRDispatcher:
         return md_path
 
     def _download_mineru(self, task: TaskRecord) -> Optional[Path]:
-        """Sync: download MinerU result ZIP → .md + .json"""
+        """Sync: download MinerU result ZIP → .md + .json
+
+        Output structure matches PaddleOCR API batch:
+          data/raw/<stem>/images/    (figures)
+          data/raw/<stem>/<stem>.md  (final markdown)
+          data/raw/<stem>/<stem>.json (ocr_items)
+        """
+        import io
+        import shutil
+        import tempfile
+        import zipfile
+
+        import requests
+
         from knowmat.pdf.mineru_api_client import MineruPrecisionClient
         from knowmat.pdf.mineru_result_converter import convert_mineru_to_knowmat
 
@@ -336,44 +357,56 @@ class OCRDispatcher:
         images_dir = paper_dir / "images"
         images_dir.mkdir(parents=True, exist_ok=True)
 
-        # Download and extract ZIP
-        import io
-        import zipfile
-        import requests
-
+        # Download and extract ZIP to a temp directory
         resp = requests.get(result_url, timeout=120)
         resp.raise_for_status()
 
+        tmp_dir = Path(tempfile.mkdtemp())
         with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-            zf.extractall(str(paper_dir / "_mineru_raw"))
+            zf.extractall(str(tmp_dir))
 
-        # Convert
-        raw_dir = paper_dir / "_mineru_raw"
-        content_list_path = None
-        for p in raw_dir.rglob("content_list.json"):
-            content_list_path = p
-            break
+        # Find content_list.json (MinerU names it <uuid>_content_list.json)
+        cl_candidates = sorted(tmp_dir.glob("*_content_list.json"))
+        cl_candidates = [f for f in cl_candidates if "_content_list_v2" not in f.name]
+        if not cl_candidates:
+            cl_candidates = list(tmp_dir.rglob("*content_list.json"))
+            cl_candidates = [f for f in cl_candidates if "_content_list_v2" not in f.name]
 
-        if not content_list_path:
+        content_list = []
+        if cl_candidates:
+            content_list = json.loads(cl_candidates[0].read_text("utf-8"))
+
+        # Find full.md
+        full_md = ""
+        md_file = tmp_dir / "full.md"
+        if md_file.is_file():
+            full_md = md_file.read_text("utf-8")
+        else:
+            for md in tmp_dir.rglob("*.md"):
+                full_md = md.read_text("utf-8")
+                break
+
+        if not content_list and not full_md:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
             return None
 
+        # Convert using the standard converter (images go to paper_dir/images/)
         extracted_text, metadata, ocr_items = convert_mineru_to_knowmat(
-            content_list_path, task.pdf_path, images_dir
+            content_list, full_md, task.pdf_path, tmp_dir, None, images_dir
         )
 
         # PP-StructureV3 refinement if paddleocr token available
-        if any(k.token for k in [self._get_key_by_id(task.api_key_id)] if k):
-            paddleocr_token = os.getenv("PADDLEOCR_API_TOKEN", "").strip()
-            if paddleocr_token:
-                from knowmat.batch.models import KeyInfo as _KI
-                pp_key = _KI(key_id="pp_refine", token=paddleocr_token,
-                             base_url="https://paddleocr.aistudio-app.com/api/v2/ocr/jobs")
-                ocr_items, pp_report = self._refine_ppstructurev3(
-                    task.pdf_path, ocr_items, str(paper_dir), pp_key
-                )
-                metadata.setdefault("ocr_quality", {}).update(pp_report)
+        paddleocr_token = os.getenv("PADDLEOCR_API_TOKEN", "").strip()
+        if paddleocr_token:
+            from knowmat.batch.models import KeyInfo as _KI
+            pp_key = _KI(key_id="pp_refine", token=paddleocr_token,
+                         base_url="https://paddleocr.aistudio-app.com/api/v2/ocr/jobs")
+            ocr_items, pp_report = self._refine_ppstructurev3(
+                task.pdf_path, ocr_items, str(paper_dir), pp_key
+            )
+            metadata.setdefault("ocr_quality", {}).update(pp_report)
 
-        # Post-processing
+        # Post-processing (same as PaddleOCR API batch path)
         from knowmat.pdf.section_normalizer import (
             normalize_alloy_strings,
             normalize_leading_masthead_and_title,
@@ -396,6 +429,7 @@ class OCRDispatcher:
         if doi and doi not in md_text:
             md_text = f"DOI: {doi}\n\n{md_text}"
 
+        # Write final output (same structure as PaddleOCR API batch)
         md_path = paper_dir / f"{stem}.md"
         md_path.write_text(md_text, encoding="utf-8")
 
@@ -403,9 +437,8 @@ class OCRDispatcher:
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(ocr_items, f, ensure_ascii=False, indent=2)
 
-        # Cleanup raw dir
-        import shutil
-        shutil.rmtree(raw_dir, ignore_errors=True)
+        # Cleanup temp dir
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
         return md_path
 
@@ -492,6 +525,25 @@ class OCRDispatcher:
 def _is_rate_limit_error(exc: Exception) -> bool:
     msg = str(exc).lower()
     return "429" in msg or "rate limit" in msg or "too many requests" in msg
+
+
+def _is_transient_error(exc: Exception) -> bool:
+    """Detect transient errors that should be retried (network, server-side)."""
+    from urllib.error import URLError
+    msg = str(exc).lower()
+    # Network / timeout errors
+    if isinstance(exc, (TimeoutError, ConnectionError, OSError)):
+        return True
+    if isinstance(exc, URLError):
+        return True
+    # HTTP 5xx server errors
+    if any(code in msg for code in ("500", "502", "503", "504")):
+        return True
+    # Common transient keywords
+    if any(kw in msg for kw in ("timeout", "timed out", "connection", "reset by peer",
+                                 "broken pipe", "temporarily unavailable")):
+        return True
+    return False
 
 
 def _is_not_found_error(exc: Exception) -> bool:
