@@ -45,6 +45,7 @@ class BatchRunner:
         max_retries: int = 3,
         poll_interval: float = 10.0,
         ocr_timeout: float = 600.0,
+        ocr_only: bool = False,
         # Pipeline options passed through to orchestrator.run()
         max_runs: int = 1,
         full_pipeline: bool = False,
@@ -59,6 +60,7 @@ class BatchRunner:
         self.max_retries = max_retries
         self.poll_interval = poll_interval
         self.ocr_timeout = ocr_timeout
+        self.ocr_only = ocr_only
         self.max_runs = max_runs
         self.full_pipeline = full_pipeline
         self.enable_property_standardization = enable_property_standardization
@@ -104,7 +106,11 @@ class BatchRunner:
             print(f"[BATCH] Total tasks: {total} | New: {new_count} | Done: {done}")
             print(f"[BATCH] To process: {pending} pending + {submitted} submitted + {ocr_done} ocr_done")
             print(f"[BATCH] Keys: {self._key_pool.size} ({self._key_pool.get_status_summary()})")
-            print(f"[BATCH] Concurrency: OCR={self.max_ocr_concurrent} LLM={self.max_llm_concurrent}")
+            if self.ocr_only:
+                print(f"[BATCH] Mode: OCR-only (no LLM extraction)")
+                print(f"[BATCH] Concurrency: OCR={self.max_ocr_concurrent}")
+            else:
+                print(f"[BATCH] Concurrency: OCR={self.max_ocr_concurrent} LLM={self.max_llm_concurrent}")
             print()
 
             if pending == 0 and submitted == 0 and ocr_done == 0:
@@ -125,14 +131,24 @@ class BatchRunner:
             # Phase 3: Run all loops concurrently
             ocr_completion_queue: asyncio.Queue[TaskRecord] = asyncio.Queue()
 
-            await asyncio.gather(
-                self._ocr_submit_loop(dispatcher),
-                dispatcher.poll_all_submitted(ocr_completion_queue, self._shutdown_event),
-                self._llm_consumer(ocr_completion_queue),
-                self._retry_loop(),
-                self._progress_reporter(),
-                return_exceptions=True,
-            )
+            if self.ocr_only:
+                await asyncio.gather(
+                    self._ocr_submit_loop(dispatcher),
+                    dispatcher.poll_all_submitted(ocr_completion_queue, self._shutdown_event),
+                    self._ocr_only_consumer(ocr_completion_queue),
+                    self._retry_loop(),
+                    self._progress_reporter(),
+                    return_exceptions=True,
+                )
+            else:
+                await asyncio.gather(
+                    self._ocr_submit_loop(dispatcher),
+                    dispatcher.poll_all_submitted(ocr_completion_queue, self._shutdown_event),
+                    self._llm_consumer(ocr_completion_queue),
+                    self._retry_loop(),
+                    self._progress_reporter(),
+                    return_exceptions=True,
+                )
 
         except asyncio.CancelledError:
             logger.info("Batch runner cancelled")
@@ -207,6 +223,28 @@ class BatchRunner:
             await asyncio.gather(*submit_tasks, return_exceptions=True)
             # Brief pause to avoid tight-looping
             await asyncio.sleep(1.0)
+
+    # ------------------------------------------------------------------
+    # OCR-only Consumer (mark OCR_DONE as DONE, skip LLM)
+    # ------------------------------------------------------------------
+
+    async def _ocr_only_consumer(self, ocr_queue: asyncio.Queue) -> None:
+        """In OCR-only mode, mark completed OCR tasks as DONE immediately."""
+        ocr_done_tasks = self._store.get_tasks_by_status(TaskStatus.OCR_DONE, limit=10000)
+        for task in ocr_done_tasks:
+            self._store.update_status(task.task_id, TaskStatus.DONE)
+            self._llm_done_count += 1
+
+        while not self._shutdown_event.is_set() or not ocr_queue.empty():
+            try:
+                task = await asyncio.wait_for(ocr_queue.get(), timeout=3.0)
+            except asyncio.TimeoutError:
+                if self._shutdown_event.is_set() and ocr_queue.empty():
+                    return
+                continue
+            self._store.update_status(task.task_id, TaskStatus.DONE)
+            self._llm_done_count += 1
+            logger.info("OCR-only done for %s", task.task_id)
 
     # ------------------------------------------------------------------
     # LLM Consumer

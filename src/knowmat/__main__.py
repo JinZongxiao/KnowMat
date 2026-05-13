@@ -224,6 +224,7 @@ def main(argv: list[str] | None = None) -> None:
             max_llm_concurrent=args.max_llm_concurrent,
             max_retries=3,
             poll_interval=args.ocr_poll_interval,
+            ocr_only=args.ocr_only,
             max_runs=args.max_runs,
             full_pipeline=args.full_pipeline,
             enable_property_standardization=args.enable_property_standardization,
