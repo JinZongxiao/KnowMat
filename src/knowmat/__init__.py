@@ -29,10 +29,16 @@ The package also defines the shared state used by the LangGraph workflow, the
 Pydantic schemas for TrustCall extractors and a top‑level ``run`` function
 invoked by the CLI.
 
-This file intentionally contains no code beyond this documentation and the
-package namespace definition.
+``run`` is exposed here as a lazy wrapper so that importing any subpackage
+(e.g. ``knowmat.image_text_alignment``) does not eagerly load the full
+LangGraph pipeline and its heavy dependencies (torch models, etc.).
+There is no circular-import issue; the lazy import is purely a load-time
+performance guard.
 """
 
+
 def run(*args, **kwargs):
-    from .orchestrator import run as _run  # noqa: F401
+    # Deferred import: keeps `import knowmat` lightweight for callers that only
+    # need subpackages (e.g. image_text_alignment) without the full pipeline.
+    from .orchestrator import run as _run
     return _run(*args, **kwargs)
