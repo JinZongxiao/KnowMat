@@ -6,15 +6,86 @@
 
 ## 目录
 
-1. [功能概述](#功能概述)
-2. [核心原理](#核心原理)
-3. [模块结构](#模块结构)
-4. [两种使用模式](#两种使用模式)
-5. [模式一：KnowMat 流水线集成](#模式一knowmat-流水线集成)
-6. [模式二：独立数据集构建](#模式二独立数据集构建)
-7. [全部配置参数](#全部配置参数)
-8. [输出格式详解](#输出格式详解)
-9. [与原始 sci-align 的差异](#与原始-sci-align-的差异)
+1. [安装](#安装)
+2. [功能概述](#功能概述)
+3. [核心原理](#核心原理)
+4. [模块结构](#模块结构)
+5. [两种使用模式](#两种使用模式)
+6. [模式一：KnowMat 流水线集成](#模式一knowmat-流水线集成)
+7. [模式二：独立数据集构建](#模式二独立数据集构建)
+8. [全部配置参数](#全部配置参数)
+9. [输出格式详解](#输出格式详解)
+10. [与原始 sci-align 的差异](#与原始-sci-align-的差异)
+
+---
+
+## 安装
+
+### 前置要求
+
+- Python **3.11+**
+- 如需 GPU 加速：CUDA 12.x + 对应版本 PyTorch
+
+### 第一步：克隆并安装 KnowMat
+
+```bash
+git clone https://github.com/shiyuasuka/KnowMat.git
+cd KnowMat
+pip install -e .
+pip install -r requirements.txt
+```
+
+> 使用 Conda 的话：
+> ```bash
+> conda env create -f environment.yml
+> conda activate KnowMat
+> ```
+
+### 第二步：安装 CLIP 依赖
+
+图像-文本对齐使用 HuggingFace CLIP（`openai/clip-vit-base-patch32`），需要额外安装：
+
+```bash
+pip install torch torchvision transformers huggingface_hub pillow
+```
+
+GPU 版（CUDA 12.x）：
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install transformers huggingface_hub pillow
+```
+
+### 第三步：配置环境变量
+
+在项目根目录新建 `.env` 文件（参考 `.env.example`），至少填写：
+
+```ini
+# LLM API（KnowMat 主流程需要，对齐模块本身不需要）
+OPENAI_API_KEY=your_key_here
+OPENAI_API_BASE=https://your-endpoint/v1
+
+# 图像-文本对齐（以下为默认值，可按需修改）
+KNOWMAT2_ALIGNMENT_ENABLED=true
+KNOWMAT2_ALIGNMENT_MODEL=clip
+KNOWMAT2_ALIGNMENT_DEVICE=cpu        # 有 GPU 改为 cuda
+KNOWMAT2_ALIGNMENT_TOP_K=5
+KNOWMAT2_ALIGNMENT_CAPTION_BLEND=0.3
+KNOWMAT2_ALIGNMENT_SAVE_DATASET=false
+```
+
+### 第四步：验证安装
+
+```bash
+python -c "from knowmat.image_text_alignment import ImageTextAligner; print('OK')"
+```
+
+输出 `OK` 即安装成功。也可运行对齐逻辑验证：
+
+```bash
+python tests/test_alignment/test_vs_scialign.py
+# 预期：SUMMARY (17 images)  Rank-1 exact match: 17/17 (100%)
+```
 
 ---
 
